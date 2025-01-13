@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "375240465625",
+    "project_id": "poultry-c0903",
+    "storage_bucket": "poultry-c0903.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:375240465625:android:2fa0fb0854bcfda274f2c8",
+        "android_client_info": {
+          "package_name": "com.businessItpartners.poultry"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBb1QbfrCc_R8ehquYog7ZGgA_cY985xx4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
