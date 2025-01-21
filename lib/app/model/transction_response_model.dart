@@ -24,7 +24,9 @@ class TransactionResponseModel {
   final String status; // 'FULL_PAID', 'PARTIAL_PAID', 'UNPAID'
   final String transactionUnder; // NIC ASIA, PRABHU, etc.a
   final String remarks;
-  final String moneyFlow;
+  // field for the unpaid amount
+  final double? unpaidAmount; // Mark as nullable
+  final String transactionTime;
 
   TransactionResponseModel({
     this.transactionId,
@@ -42,7 +44,9 @@ class TransactionResponseModel {
     required this.status,
     required this.transactionUnder,
     required this.remarks,
-    required this.moneyFlow,
+    this.unpaidAmount, // Make parameter optional
+
+    required this.transactionTime,
   });
 
   factory TransactionResponseModel.fromJson(Map<String, dynamic> json,
@@ -64,7 +68,9 @@ class TransactionResponseModel {
       transactionUnder: json['transactionUnder'] ?? '',
       remarks: json['remarks'] ??
           '', // for the each transciton writing the party name, purchase/sell itme ok
-      moneyFlow: json['moneyFlow'] ?? '',
+      unpaidAmount: json['unpaidAmount']?.toDouble(), // Handle null case
+
+      transactionTime: json['transactionTime'] ?? '',
     );
   }
 
@@ -84,7 +90,8 @@ class TransactionResponseModel {
       'status': status,
       'transactionUnder': transactionUnder,
       'remarks': remarks,
-      'moneyFlow': moneyFlow,
+      'unpaidAmount': unpaidAmount,
+      'transactionTime': transactionTime,
     };
   }
 

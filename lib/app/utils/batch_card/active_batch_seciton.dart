@@ -3,14 +3,15 @@ import 'package:get/get.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/model/batch_response_model.dart';
 import 'package:poultry/app/modules/add_batch/add_batch.dart';
-import 'package:poultry/app/modules/dashboard/dashboard.dart';
-import 'package:poultry/app/modules/laying_stage/laying_stage_analysis.dart';
+import 'package:poultry/app/modules/batch_managemnt/batch_managemnt.dart';
+import 'package:poultry/app/modules/monthly_report/monthly_report.dart';
 import 'package:poultry/app/utils/batch_card/batch_card_controller.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class ActiveBatchesSection extends StatelessWidget {
   ActiveBatchesSection({Key? key}) : super(key: key);
-  final controller = Get.put(ActiveBatchCardController());
+
+  final controller = Get.put(ActiveBatchStreamController());
 
   @override
   Widget build(BuildContext context) {
@@ -24,133 +25,74 @@ class ActiveBatchesSection extends StatelessWidget {
         const SizedBox(height: 16),
         SizedBox(
           height: 32.5.h,
-          child: Obx(() {
-            // Show loading indicator while either batches or stats are loading
-            if (controller.isLoading.value || controller.isStatsLoading.value) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          child: StreamBuilder<List<BatchResponseModel>>(
+            stream: controller.batches,
+            builder: (context, batchSnapshot) {
+              if (!batchSnapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final cardWidth = _calculateCardWidth(constraints.maxWidth);
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: controller.batches.length + 1,
-                  padding:
-                      EdgeInsets.symmetric(horizontal: isSmallScreen ? 4 : 8),
-                  itemBuilder: (context, index) {
-                    if (index == controller.batches.length) {
-                      return _buildAddBatchCard(cardWidth, isSmallScreen);
-                    }
-
-                    final batch = controller.batches[index];
-                    final stats = controller.batchStats[batch.batchId] ?? {};
-
-                    return SizedBox(
-                      width: cardWidth,
-                      child: _buildBatchCard(batch, stats, isSmallScreen),
-                    );
-                  },
+              if (batchSnapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error loading batches',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 );
-              },
-            );
-          }),
+              }
+
+              final batches = batchSnapshot.data!;
+
+              return StreamBuilder<Map<String, Map<String, dynamic>>>(
+                stream: controller.batchStats,
+                builder: (context, statsSnapshot) {
+                  final stats = statsSnapshot.data ?? {};
+
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cardWidth =
+                          _calculateCardWidth(constraints.maxWidth);
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: batches.length + 1,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSmallScreen ? 4 : 8,
+                        ),
+                        itemBuilder: (context, index) {
+                          if (index == batches.length) {
+                            return _buildAddBatchCard(cardWidth, isSmallScreen);
+                          }
+
+                          final batch = batches[index];
+                          final batchStats = stats[batch.batchId] ?? {};
+
+                          return SizedBox(
+                            width: cardWidth,
+                            child: _buildBatchCard(
+                              batch,
+                              batchStats,
+                              isSmallScreen,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildBatchCard(BatchResponseModel batch, Map<String, dynamic> stats,
-      bool isSmallScreen) {
-    // Calculate age in weeks
-    final startDate = batch.startingDate != null
-        ? NepaliDateTime.parse(batch.startingDate!)
-        : NepaliDateTime.now();
-    final currentDate = NepaliDateTime.now();
-    final ageInWeeks = currentDate.difference(startDate).inDays ~/ 7;
-
-    final bool hasAlerts = (stats['totalDeaths'] ?? 0) > 0;
-
-    return Container(
-      margin: EdgeInsets.only(right: isSmallScreen ? 8 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: hasAlerts ? Colors.red.shade100 : Colors.green.shade100,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildEnhancedHeader(
-            name: batch.batchName ?? 'Unnamed Batch',
-            age: '$ageInWeeks weeks',
-            hasAlerts: hasAlerts,
-            isSmallScreen: isSmallScreen,
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Monthly Summary (${_getCurrentNepaliMonth()})',
-                    style: TextStyle(
-                      fontSize: isSmallScreen ? 15.sp : 16.sp,
-                      color: const Color.fromARGB(255, 24, 24, 24),
-                    ),
-                  ),
-                  SizedBox(height: 0.2.h),
-                  _buildInfoRow(
-                    'Flocks ',
-                    '${batch.currentFlockCount ?? 0}',
-                    Icons.pets,
-                    Colors.green,
-                    isSmallScreen,
-                  ),
-                  _buildInfoRow(
-                    'Production',
-                    '${controller.numberFormat.format(stats['totalEggs'] ?? 0)} eggs',
-                    Icons.egg_outlined,
-                    Colors.orange,
-                    isSmallScreen,
-                  ),
-                  _buildInfoRow(
-                    'Deaths',
-                    '${controller.numberFormat.format(stats['totalDeaths'] ?? 0)}',
-                    Icons.warning_outlined,
-                    Colors.red,
-                    isSmallScreen,
-                  ),
-                  _buildInfoRow(
-                    'Feed',
-                    '${controller.numberFormat.format(stats['totalFeed'] ?? 0)}kg',
-                    Icons.food_bank,
-                    Colors.purple,
-                    isSmallScreen,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          _buildBatchFooter(isSmallScreen, batch),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSectionHeader(bool isSmallScreen) {
-    return Obx(() => Container(
+    return StreamBuilder<List<BatchResponseModel>>(
+      stream: controller.batches,
+      builder: (context, snapshot) {
+        final batchCount = snapshot.data?.length ?? 0;
+        return Container(
           margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 4 : 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,15 +106,112 @@ class ActiveBatchesSection extends StatelessWidget {
               ),
               SizedBox(height: 0.5.h),
               Text(
-                '${controller.batches.length} - active Batch',
+                '$batchCount - active Batch',
                 style: TextStyle(
                   color: const Color.fromARGB(255, 81, 81, 81),
                   fontSize: 16.sp,
                 ),
               ),
+
+              // for details button
             ],
           ),
-        ));
+        );
+      },
+    );
+  }
+
+  Widget _buildBatchCard(BatchResponseModel batch, Map<String, dynamic> stats,
+      bool isSmallScreen) {
+    // Calculate age in weeks
+    final startDate = batch.startingDate.isNotEmpty
+        ? NepaliDateTime.parse(batch.startingDate)
+        : NepaliDateTime.now();
+    final currentDate = NepaliDateTime.now();
+    final ageInWeeks = currentDate.difference(startDate).inDays ~/ 7;
+
+    final bool hasAlerts = (stats['totalDeaths'] ?? 0) > 0;
+
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => BatchManagementPage());
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: isSmallScreen ? 8 : 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: hasAlerts ? Colors.red.shade100 : Colors.green.shade100,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade200,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            _buildEnhancedHeader(
+              name: batch.batchName,
+              age: '$ageInWeeks weeks',
+              hasAlerts: hasAlerts,
+              isSmallScreen: isSmallScreen,
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Monthly Summary (${_getCurrentNepaliMonth()})',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 15.sp : 16.sp,
+                        color: const Color.fromARGB(255, 24, 24, 24),
+                      ),
+                    ),
+                    SizedBox(height: 0.2.h),
+                    _buildInfoRow(
+                      'Flocks',
+                      '${batch.currentFlockCount}',
+                      Icons.pets,
+                      Colors.green,
+                      isSmallScreen,
+                    ),
+                    _buildInfoRow(
+                      'Production',
+                      '${controller.formatNumber((stats['totalCrates'] ?? 0))} crates',
+                      Icons.egg_outlined,
+                      Colors.orange,
+                      isSmallScreen,
+                    ),
+                    _buildInfoRow(
+                      'Deaths',
+                      '${controller.formatNumber(stats['totalDeaths'] ?? 0)}',
+                      Icons.warning_outlined,
+                      Colors.red,
+                      isSmallScreen,
+                    ),
+                    _buildInfoRow(
+                      'Feed',
+                      '${controller.formatNumber(stats['totalFeed'] ?? 0)}kg',
+                      Icons.food_bank,
+                      Colors.purple,
+                      isSmallScreen,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildEnhancedHeader({
@@ -200,35 +239,6 @@ class ActiveBatchesSection extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 8 : 12,
-                  vertical: isSmallScreen ? 4 : 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: isSmallScreen ? 14 : 16,
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      age,
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 12 : 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -270,43 +280,6 @@ class ActiveBatchesSection extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBatchFooter(bool isSmallScreen, BatchResponseModel batch) {
-    return GestureDetector(
-      onTap: () {
-        // Add navigation logic here if needed
-        Get.to(() => LayingAnalysisPage(
-              batch: batch,
-            ));
-      },
-      child: Container(
-        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-        decoration: BoxDecoration(
-          color: Colors.indigo.shade50,
-          borderRadius:
-              const BorderRadius.vertical(bottom: Radius.circular(16)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'View Details',
-              style: TextStyle(
-                color: Colors.indigo.shade700,
-                fontWeight: FontWeight.w500,
-                fontSize: isSmallScreen ? 12 : 14,
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward,
-              color: Colors.indigo.shade700,
-              size: isSmallScreen ? 16 : 20,
-            ),
-          ],
-        ),
-      ),
     );
   }
 

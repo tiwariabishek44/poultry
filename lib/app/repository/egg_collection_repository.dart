@@ -22,7 +22,7 @@ class EggCollectionRepository {
 
       final response =
           await _firebaseClient.postDocument<EggCollectionResponseModel>(
-        collectionPath: 'egg_collections',
+        collectionPath: FirebasePath.eggCollections,
         documentId: docRef.id,
         data: collectionData,
         responseType: (json) =>
@@ -34,5 +34,22 @@ class EggCollectionRepository {
       log("Error in createEggCollection: $e");
       return ApiResponse.error("Failed to create egg collection: $e");
     }
+  }
+
+  // Add this new method
+  Stream<List<EggCollectionResponseModel>> streamEggCollectionsByYearMonth(
+      String adminId, String yearMonth) {
+    return _firebaseClient
+        .streamCollection(
+          collectionPath: FirebasePath.eggCollections,
+          queryBuilder: (query) => query
+              .where('adminId', isEqualTo: adminId)
+              .where('yearMonth', isEqualTo: yearMonth),
+        )
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EggCollectionResponseModel.fromJson(
+                doc.data() as Map<String, dynamic>,
+                collectionId: doc.id))
+            .toList());
   }
 }

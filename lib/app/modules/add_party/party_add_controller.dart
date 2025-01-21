@@ -100,7 +100,7 @@ class PartyAddController extends GetxController {
         partyController.fetchParties();
 
         CustomDialog.showSuccess(
-          message: 'पार्टी सफलतापूर्वक थपियो',
+          message: 'Successfully added party',
           onConfirm: () {
             Get.back();
             // fetchParties();

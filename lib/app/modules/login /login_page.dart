@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
+import 'package:poultry/app/modules/register/user_phone_verification.dart';
 import 'package:poultry/appss/config/constant.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -175,7 +176,7 @@ class LoginPage extends GetView<LoginController> {
                           child: TextFormField(
                             controller: controller.phoneController,
                             validator: (value) =>
-                                controller.validateEmail(value!),
+                                controller.validatePhoneNuber(value!),
                             style: GoogleFonts.notoSansDevanagari(
                               fontSize: 16,
                               color: Colors.black87,
@@ -271,7 +272,7 @@ class LoginPage extends GetView<LoginController> {
                           child: TextButton(
                             onPressed: () {
                               FocusScope.of(context).unfocus();
-                              // Get.to(() => PhoneEntryPage());
+                              Get.to(() => PhoneVerificationPage());
                             },
                             child: Text(
                               'Create New Account',

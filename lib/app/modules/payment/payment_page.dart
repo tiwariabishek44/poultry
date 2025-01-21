@@ -22,6 +22,8 @@ class PaymentRecordPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    controller.totalCredit.value = party.creditAmount;
+
     controller.isCustomer.value = party.partyType == 'customer' ? true : false;
     return Scaffold(
       appBar: _buildAppBar(),
@@ -63,8 +65,6 @@ class PaymentRecordPage extends StatelessWidget {
           _buildDateSelection(),
           SizedBox(height: 3.h),
           _buildAmountInput(),
-          SizedBox(height: 3.h),
-          _buildPaymentMethodSelection(),
           SizedBox(height: 3.h),
           _buildNotesSection(),
           SizedBox(height: 4.h),
@@ -152,68 +152,53 @@ class PaymentRecordPage extends StatelessWidget {
   }
 
   Widget _buildAmountInput() {
-    return CustomInputField(
-      hint: 'Enter Payment Amount',
-      controller: controller.amountController,
-      keyboardType: TextInputType.number,
-      validator: (value) =>
-          controller.validateAmount(value, party.creditAmount),
-      label: 'Enter Payment Amount',
-    );
-  }
-
-  Widget _buildPaymentMethodSelection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.dividerColor),
-      ),
-      padding: EdgeInsets.all(4.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Payment Method ',
-            style: GoogleFonts.notoSansDevanagari(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(height: 2.h),
-          _buildPaymentMethodDropdown(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethodDropdown() {
-    return Obx(() => Container(
-          padding: EdgeInsets.symmetric(horizontal: 4.w),
+    return Column(
+      children: [
+        CustomInputField(
+          hint: 'Enter Payment Amount',
+          controller: controller.amountController,
+          keyboardType: TextInputType.number,
+          validator: (value) =>
+              controller.validateAmount(value, party.creditAmount),
+          label: 'Enter Payment Amount',
+          onChanged: (value) {
+            controller.calculateRemainingAmount();
+          },
+        ),
+        SizedBox(height: 2.h),
+        // Add remaining amount display
+        Container(
+          padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: AppColors.dividerColor),
-            borderRadius: BorderRadius.circular(12),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: controller.selectedPaymentMethod.value.isEmpty
-                  ? null
-                  : controller.selectedPaymentMethod.value,
-              hint: Text(
-                'Select Payment Method',
-                style: GoogleFonts.notoSansDevanagari(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Remaining Due',
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 15.sp,
+                  color: AppColors.textSecondary,
+                ),
               ),
-              items: const [
-                DropdownMenuItem(value: 'CASH', child: Text('Cash')),
-                DropdownMenuItem(value: 'BANK', child: Text('Bank')),
-                DropdownMenuItem(value: 'ONLINE', child: Text('Online')),
-              ],
-              onChanged: (value) =>
-                  controller.selectedPaymentMethod.value = value ?? '',
-            ),
+              Obx(() => Text(
+                    'Rs. ${numberFormat.format(controller.remainingAmount.value)}',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: controller.remainingAmount.value > 0
+                          ? Colors.red[700]
+                          : Colors.green[700],
+                    ),
+                  )),
+            ],
           ),
-        ));
+        ),
+      ],
+    );
   }
 
   Widget _buildNotesSection() {

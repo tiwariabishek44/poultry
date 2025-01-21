@@ -1,9 +1,130 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:nepali_date_picker/nepali_date_picker.dart';
+import 'package:poultry/app/modules/login%20/login_controller.dart';
+import 'package:poultry/app/repository/egg_collection_repository.dart';
+import 'package:poultry/app/repository/feed_consumption_repository.dart';
 import 'package:poultry/app/utils/batch_card/active_batch_seciton.dart';
+import 'package:poultry/app/widget/custom_pop_up.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
+
+import 'package:get/get.dart';
+import 'package:poultry/app/model/egg_collection_response.dart';
+import 'package:poultry/app/model/feed_consumption_response.dart';
+import 'package:nepali_date_picker/nepali_date_picker.dart';
+
+class FarmStatusController extends GetxController {
+  final EggCollectionRepository _eggRepository = EggCollectionRepository();
+  final FeedConsumptionRepository _feedRepository = FeedConsumptionRepository();
+  final _loginController = Get.find<LoginController>();
+
+  // Observable values for the dashboard
+  final RxInt totalEggCrates = 0.obs;
+  final RxDouble totalFeedConsumption = 0.0.obs;
+
+  // Subscriptions for cleanup
+  StreamSubscription? _eggSubscription;
+  StreamSubscription? _feedSubscription;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _startListening();
+  }
+
+  @override
+  void onClose() {
+    _eggSubscription?.cancel();
+    _feedSubscription?.cancel();
+    super.onClose();
+  }
+
+  void _startListening() {
+    final currentYearMonth = _getCurrentYearMonth();
+    _listenToEggCollections(currentYearMonth);
+    _listenToFeedConsumption(currentYearMonth);
+  }
+
+  String _getCurrentYearMonth() {
+    final now = NepaliDateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
+
+  void _listenToEggCollections(String yearMonth) {
+    final adminId = _loginController.adminUid;
+
+    if (adminId == null) {
+      CustomDialog.showError(
+        message: 'Admin ID not found. Please login again.',
+      );
+      return;
+    }
+    _eggSubscription?.cancel();
+    _eggSubscription = _eggRepository
+        .streamEggCollectionsByYearMonth(adminId, yearMonth)
+        .listen((collections) {
+      int totalEggs = 0;
+      for (var collection in collections) {
+        totalEggs += collection.getTotalEggs();
+      }
+      totalEggCrates.value = (totalEggs / 30).toInt(); // Converting to crates
+    });
+  }
+
+  void _listenToFeedConsumption(String yearMonth) {
+    final adminId = _loginController.adminUid;
+    if (adminId == null) {
+      CustomDialog.showError(
+        message: 'Admin ID not found. Please login again.',
+      );
+      return;
+    }
+    _feedSubscription?.cancel();
+    _feedSubscription = _feedRepository
+        .streamFeedConsumptionByYearMonth(adminId, yearMonth)
+        .listen((consumptions) {
+      double total = 0;
+      for (var consumption in consumptions) {
+        total += consumption.quantityKg;
+      }
+      totalFeedConsumption.value = total;
+    });
+  }
+
+  // Method to refresh data
+  void refreshData() {
+    _startListening();
+  }
+}
 
 class FarmStatusCard extends StatelessWidget {
-  const FarmStatusCard({Key? key}) : super(key: key);
+  FarmStatusCard({Key? key}) : super(key: key);
+  final FarmStatusController controller = Get.put(FarmStatusController());
 
+  String _getCurrentNepaliMonth() {
+    final months = [
+      'Baishakh',
+      'Jestha',
+      'Ashadh',
+      'Shrawan',
+      'Bhadra',
+      'Ashwin',
+      'Kartik',
+      'Mangsir',
+      'Poush',
+      'Magh',
+      'Falgun',
+      'Chaitra'
+    ];
+    final currentMonth = NepaliDateTime.now().month;
+    return months[currentMonth - 1];
+  }
+
+  final numberFormat = NumberFormat("##,##,###.##");
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -14,13 +135,8 @@ class FarmStatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Modern Header with Profile
           _buildModernHeader(isSmallScreen),
-
-          const SizedBox(height: 20),
-
           const SizedBox(height: 24),
-
           ActiveBatchesSection(),
         ],
       ),
@@ -41,56 +157,21 @@ class FarmStatusCard extends StatelessWidget {
           BoxShadow(
             color: Colors.blue.withOpacity(0.3),
             blurRadius: 8,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          // Top Row with Profile and Weather
+          // Top Row with Title and Month
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Profile Section
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: isSmallScreen ? 20 : 24,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      'R',
-                      style: TextStyle(
-                        color: Colors.indigo.shade600,
-                        fontWeight: FontWeight.bold,
-                        fontSize: isSmallScreen ? 18 : 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back,',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: isSmallScreen ? 12 : 14,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Ram Krishna',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // Weather Widget
+              Text("Poultry  ",
+                  style: GoogleFonts.roboto(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold)),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -103,14 +184,14 @@ class FarmStatusCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.wb_sunny_outlined,
+                      Icons.calendar_today,
                       color: Colors.yellow.shade300,
                       size: 18,
                     ),
                     const SizedBox(width: 6),
-                    const Text(
-                      '25°C',
-                      style: TextStyle(
+                    Text(
+                      _getCurrentNepaliMonth(),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -123,17 +204,17 @@ class FarmStatusCard extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Farm Overview
+          // Farm Overview Stats
           Row(
             children: [
               Expanded(
-                child: _buildOverviewStat(
-                  'Today\'s Production',
-                  '10,850',
-                  'eggs collected',
-                  Icons.egg_outlined,
-                  isSmallScreen,
-                ),
+                child: Obx(() => _buildOverviewStat(
+                      'Egg Production',
+                      '${numberFormat.format(controller.totalEggCrates.value)}',
+                      'Crate',
+                      Icons.egg_outlined,
+                      isSmallScreen,
+                    )),
               ),
               Container(
                 height: 40,
@@ -142,63 +223,19 @@ class FarmStatusCard extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
               ),
               Expanded(
-                child: _buildOverviewStat(
-                  'Average Rate',
-                  '87%',
-                  'laying rate',
-                  Icons.show_chart,
-                  isSmallScreen,
-                ),
+                child: Obx(() => _buildOverviewStat(
+                      'Feed Consumption',
+                      '${numberFormat.format(controller.totalFeedConsumption.value)}',
+                      'Kg',
+                      LucideIcons.wheat,
+                      isSmallScreen,
+                    )),
               ),
             ],
           ),
+          // .
         ],
       ),
-    );
-  }
-
-  Widget _buildMainStatsSection(bool isSmallScreen) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.5,
-      children: [
-        _buildMainStatCard(
-          'Total Birds',
-          '12,450',
-          Icons.pets,
-          Colors.blue,
-          ['+45 today', '98% healthy'],
-          isSmallScreen,
-        ),
-        _buildMainStatCard(
-          'Feed Stock',
-          '2.5 tons',
-          Icons.inventory_2,
-          Colors.orange,
-          ['4 days left', '120g/bird'],
-          isSmallScreen,
-        ),
-        _buildMainStatCard(
-          'Mortality',
-          '0.5%',
-          Icons.monitor_heart_outlined,
-          Colors.red,
-          ['12 this month', 'Normal range'],
-          isSmallScreen,
-        ),
-        _buildMainStatCard(
-          'Revenue',
-          '\$15,240',
-          Icons.account_balance_wallet,
-          Colors.green,
-          ['+\$1,200 today', '87% margin'],
-          isSmallScreen,
-        ),
-      ],
     );
   }
 
@@ -216,7 +253,7 @@ class FarmStatusCard extends StatelessWidget {
           label,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: isSmallScreen ? 11 : 12,
+            fontSize: isSmallScreen ? 16.sp : 16.sp,
           ),
         ),
         const SizedBox(height: 8),
@@ -232,7 +269,7 @@ class FarmStatusCard extends StatelessWidget {
               value,
               style: TextStyle(
                 color: Colors.white,
-                fontSize: isSmallScreen ? 20 : 24,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -243,103 +280,10 @@ class FarmStatusCard extends StatelessWidget {
           subtitle,
           style: TextStyle(
             color: Colors.white.withOpacity(0.8),
-            fontSize: isSmallScreen ? 11 : 12,
+            fontSize: 16.sp,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildMainStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-    List<String> details,
-    bool isSmallScreen,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: color.withOpacity(0.1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: isSmallScreen ? 16 : 20,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: isSmallScreen ? 11 : 12,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isSmallScreen ? 20 : 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: details.map((detail) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    detail,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: isSmallScreen ? 10 : 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
     );
   }
 }

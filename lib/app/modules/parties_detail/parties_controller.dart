@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/model/party_response_model.dart';
 import 'package:poultry/app/model/transction_response_model.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/repository/party_repository.dart';
+import 'package:poultry/app/repository/transction_fetch_repositoyr.dart';
 import 'package:poultry/app/repository/transction_repository.dart';
 import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
@@ -12,12 +14,10 @@ import 'package:poultry/app/widget/loading_State.dart';
 
 class PartyController extends GetxController {
   static PartyController get instance => Get.find();
-  final _transactionRepository = TransactionRepository();
-
   final _partyRepository = PartyRepository();
   final _loginController = Get.find<LoginController>();
+  final transctionFetchRepositr = TransactionFetchRepository();
 
-  // Form controls
   // Form controls
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
@@ -35,17 +35,42 @@ class PartyController extends GetxController {
   final filteredParties = <PartyResponseModel>[].obs;
   final isLoading = false.obs;
   final selectedFilter = 'all'.obs;
-  // Observable for party details
   final partyDetails = Rxn<PartyResponseModel>();
   final isLoadingDetails = false.obs;
-
-// Update the transactions observable to use TransactionResponseModel
   final transactions = <TransactionResponseModel>[].obs;
   final isLoadingTransactions = false.obs;
+
   @override
   void onInit() {
     super.onInit();
     fetchParties();
+    fetchMetrics();
+  }
+
+// In PartyController
+  final thisMonthSales = 0.0.obs;
+  final thisMonthPurchase = 0.0.obs;
+  final totalReceivable = 0.0.obs;
+  final totalPayable = 0.0.obs;
+
+// Add this method to fetch metrics
+  Future<void> fetchMetrics() async {
+    try {
+      final currentDate = NepaliDateTime.now();
+      final yearMonth =
+          '${currentDate.year}-${currentDate.month.toString().padLeft(2, '0')}';
+
+      // Fetch this month's sales and purchases
+      // Add your Firebase queries here
+
+      // Update the values
+      thisMonthSales.value = 20;
+      thisMonthPurchase.value = 20;
+      totalReceivable.value = 20;
+      totalPayable.value = 20;
+    } catch (e) {
+      print('Error fetching metrics: $e');
+    }
   }
 
   void updateFilter(String filter) {
@@ -54,29 +79,37 @@ class PartyController extends GetxController {
   }
 
   void _applyFilter() {
-    switch (selectedFilter.value) {
-      case 'all':
-        filteredParties.value = parties;
-        break;
-      case 'supplier':
-        filteredParties.value =
-            parties.where((party) => party.partyType == 'supplier').toList();
-        break;
-      case 'customer':
-        filteredParties.value =
-            parties.where((party) => party.partyType == 'customer').toList();
-        break;
-    }
-  }
+    filteredParties.value = parties.where((party) {
+      switch (selectedFilter.value) {
+        case 'all':
+          return true;
 
-  double _parseCreditAmount() {
-    if (creditAmountController.text.isEmpty) return 0.0;
-    try {
-      return double.parse(creditAmountController.text.replaceAll(',', ''));
-    } catch (e) {
-      log("Error parsing credit amount: $e");
-      return 0.0;
-    }
+        case 'supplier':
+          return party.partyType == 'supplier';
+
+        case 'customer':
+          return party.partyType == 'customer';
+
+        case 'to_receive':
+          // Show customers with credited amount
+          return party.partyType == 'customer' &&
+              party.isCredited &&
+              party.creditAmount > 0;
+
+        case 'to_pay':
+          // Show suppliers with credited amount
+          return party.partyType == 'supplier' &&
+              party.isCredited &&
+              party.creditAmount > 0;
+
+        case 'settled':
+          // Show parties with no credit or credit amount is 0
+          return !party.isCredited || party.creditAmount == 0;
+
+        default:
+          return true;
+      }
+    }).toList();
   }
 
   Future<void> fetchParties() async {
@@ -109,6 +142,27 @@ class PartyController extends GetxController {
 
   // to get the party details
 
+  // Helper method to combine date and time for sorting
+  DateTime _getFullDateTime(String date, String time) {
+    try {
+      final dateTime = DateTime.parse(date);
+      final timeParts = time.split(':');
+
+      return DateTime(
+        dateTime.year,
+        dateTime.month,
+        dateTime.day,
+        int.parse(timeParts[0]), // hours
+        int.parse(timeParts[1]), // minutes
+        int.parse(timeParts[2]), // seconds
+      );
+    } catch (e) {
+      log("Error parsing date/time: $e");
+      return DateTime.parse(
+          date); // Fallback to just date if time parsing fails
+    }
+  }
+
   Future<void> fetchPartyDetails(String partyId) async {
     isLoadingDetails.value = true;
     isLoadingTransactions.value = true;
@@ -120,11 +174,20 @@ class PartyController extends GetxController {
 
         // Fetch and sort transactions
         final transactionResponse =
-            await _transactionRepository.getPartyTransactions(partyId);
+            await transctionFetchRepositr.getPartyTransactions(partyId);
         if (transactionResponse.status == ApiStatus.SUCCESS) {
           var sortedTransactions = transactionResponse.response ?? [];
-          sortedTransactions.sort((a, b) => DateTime.parse(b.transactionDate)
-              .compareTo(DateTime.parse(a.transactionDate)));
+
+          // Sort by date and time
+          sortedTransactions.sort((a, b) {
+            final aDateTime =
+                _getFullDateTime(a.transactionDate, a.transactionTime);
+            final bDateTime =
+                _getFullDateTime(b.transactionDate, b.transactionTime);
+            return bDateTime
+                .compareTo(aDateTime); // Descending order (recent first)
+          });
+
           transactions.value = sortedTransactions;
         } else {
           CustomDialog.showError(

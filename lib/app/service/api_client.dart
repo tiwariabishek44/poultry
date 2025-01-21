@@ -1,5 +1,6 @@
 // service/firebase_client.dart
 import 'dart:developer';
+// import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -36,6 +37,14 @@ class FirebaseClient {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // final Connectivity _connectivity = Connectivity();
+
+  // // Add this helper method to check internet
+  // Future<bool> _checkInternetConnection() async {
+  //   final connectivityResult = await _connectivity.checkConnectivity();
+  //   return connectivityResult != ConnectivityResult.none;
+  // }
+
 // -------- to get the document id
   Future<DocumentReference> getDocumentReference({
     required String collectionPath,
@@ -50,6 +59,11 @@ class FirebaseClient {
     required T Function(Map<String, dynamic> json) responseType,
     String? documentId,
   }) async {
+    // First check internet
+    // if (!await _checkInternetConnection()) {
+    //   return ApiResponse.error(
+    //       "No internet connection. Please check your connection");
+    // }
     try {
       log("Adding document to $collectionPath");
       final docRef = documentId != null
@@ -99,6 +113,11 @@ class FirebaseClient {
     required String collectionPath,
     required String documentId,
   }) async {
+    // First check internet
+    // if (!await _checkInternetConnection()) {
+    //   return ApiResponse.error(
+    //       "No internet connection. Please check your connection");
+    // }
     try {
       log("Deleting document from $collectionPath/$documentId");
 
@@ -177,6 +196,11 @@ class FirebaseClient {
   Future<ApiResponse<Map<String, dynamic>>> updateMultipleCollections({
     required Map<String, Map<String, dynamic>> updates,
   }) async {
+    // First check internet
+    // if (!await _checkInternetConnection()) {
+    //   return ApiResponse.error(
+    //       "No internet connection. Please check your connection");
+    // }
     try {
       log("Starting cross-collection update transaction");
 
@@ -231,6 +255,11 @@ class FirebaseClient {
     required Map<String, dynamic> relatedUpdate,
     required T Function(Map<String, dynamic> json) responseType,
   }) async {
+    // First check internet
+    // if (!await _checkInternetConnection()) {
+    //   return ApiResponse.error(
+    //       "No internet connection. Please check your connection");
+    // }
     try {
       log("Updating related documents in $primaryCollection and $relatedCollection");
 

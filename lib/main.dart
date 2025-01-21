@@ -93,6 +93,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
@@ -106,18 +107,14 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  await FlutterDownloader.initialize();
 
-  // Initialize Firebase
-  Platform.isAndroid
-      ? await Firebase.initializeApp(
-          options: const FirebaseOptions(
-              apiKey: "AIzaSyBb1QbfrCc_R8ehquYog7ZGgA_cY985xx4",
-              appId: "1:375240465625:android:2fa0fb0854bcfda274f2c8",
-              messagingSenderId: "375240465625",
-              projectId: "poultry-c0903",
-              storageBucket: "poultry-c0903.firebasestorage.app"))
-      : await Firebase.initializeApp();
+  // Only initialize FlutterDownloader for mobile platforms
+  if (!kIsWeb) {
+    await FlutterDownloader.initialize();
+  }
+
+  // Initialize Firebase based on platform
+  await initializeFirebase();
 
   // Check login status
   final storage = GetStorage();
@@ -126,6 +123,32 @@ void main() async {
   Get.put(LoginController());
 
   runApp(const MyApp());
+}
+
+Future<void> initializeFirebase() async {
+  if (kIsWeb) {
+    // Web Firebase configuration
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+          apiKey: "AIzaSyB2TQCkMxvrz88d8vy1Ppkc3uXyoaeskKY",
+          authDomain: "poultry-c0903.firebaseapp.com",
+          projectId: "poultry-c0903",
+          storageBucket: "poultry-c0903.firebasestorage.app",
+          messagingSenderId: "375240465625",
+          appId: "1:375240465625:web:28e5fdcf3c51c45174f2c8"),
+    );
+  } else if (Platform.isAndroid) {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+          apiKey: "AIzaSyBb1QbfrCc_R8ehquYog7ZGgA_cY985xx4",
+          appId: "1:375240465625:android:2fa0fb0854bcfda274f2c8",
+          messagingSenderId: "375240465625",
+          projectId: "poultry-c0903",
+          storageBucket: "poultry-c0903.firebasestorage.app"),
+    );
+  } else {
+    await Firebase.initializeApp();
+  }
 }
 
 class MyApp extends StatelessWidget {

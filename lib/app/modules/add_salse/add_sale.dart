@@ -12,6 +12,7 @@ import 'package:poultry/app/modules/add_salse/add_salse_controller.dart';
 import 'package:poultry/app/modules/add_salse/add_salse_items.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/widget/custom_input_field.dart';
+import 'package:poultry/app/widget/date_select_widget.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class AddSalePage extends StatelessWidget {
@@ -21,6 +22,7 @@ class AddSalePage extends StatelessWidget {
   AddSalePage({
     required this.party,
   });
+  final dateSelectorController = Get.put(DateSelectorController());
 
   @override
   Widget build(BuildContext context) {
@@ -450,6 +452,13 @@ class AddSalePage extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(height: 2.h),
+          DateSelectorWidget(
+            controller: dateSelectorController,
+            label: 'Select  Date',
+            showCard: false,
+            hint: 'Choose a date',
+          ),
         ],
       ),
     );
@@ -514,29 +523,15 @@ class AddSalePage extends StatelessWidget {
       child: SafeArea(
         child: ElevatedButton.icon(
           onPressed: () async {
-            // if (controller.formKey.currentState?.validate() ?? false) {
-            //   final sale = SalesResponseModel(
-            //     partyId: party.partyId!,
-            //     adminId: Get.find<LoginController>().adminUid!,
-            //     yearMonth: DateTime.now().toString().substring(0, 7),
-            //     saleDate: DateTime.now().toIso8601String(),
-            //     saleItems: controller.selectedItems,
-            //     totalAmount: controller.totalAmount.value,
-            //     paidAmount: double.tryParse(controller.paidAmount.text) ?? 0.0,
-            //     dueAmount: controller.dueAmount.value,
-            //     paymentStatus: controller.paymentStatus,
-            //     notes: controller.notes.text.isEmpty
-            //         ? null
-            //         : controller.notes.text,
-            //   );
-            // }
             // focous restriction
             FocusManager.instance.primaryFocus?.unfocus();
 
             // Small delay to ensure keyboard is dismissed
             await Future.delayed(Duration(milliseconds: 100));
 
-            controller.createSaleRecord();
+            controller.createSaleRecord(
+                dateSelectorController.dateController.text,
+                dateSelectorController.selectedMonthYear.value);
           },
           icon: Icon(LucideIcons.checkCircle2, color: Colors.white),
           label: Text(

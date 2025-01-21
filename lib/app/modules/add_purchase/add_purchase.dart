@@ -9,6 +9,7 @@ import 'package:poultry/app/model/purchase_repsonse_model.dart';
 import 'package:poultry/app/modules/add_purchase/add_purchase_controller.dart';
 import 'package:poultry/app/modules/add_purchase/add_purchase_item.dart';
 import 'package:poultry/app/widget/custom_input_field.dart';
+import 'package:poultry/app/widget/date_select_widget.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class AddPurchasePage extends StatelessWidget {
@@ -18,11 +19,13 @@ class AddPurchasePage extends StatelessWidget {
   AddPurchasePage({
     required this.party,
   });
+  final dateSelectorController = Get.put(DateSelectorController());
 
   @override
   Widget build(BuildContext context) {
     controller.partyId.value = party.partyId!;
     controller.partyCurrentCredit.value = party.creditAmount;
+    controller.partyName.value = party.partyName;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -429,12 +432,12 @@ class AddPurchasePage extends StatelessWidget {
                   )),
             ],
           ),
-          SizedBox(height: 2.h),
-          CustomInputField(
-            controller: controller.invoiceNumber,
-            label: 'Invoice Number',
-            hint: 'Enter invoice number if available',
-          ),
+          // SizedBox(height: 2.h),
+          // CustomInputField(
+          //   controller: controller.invoiceNumber,
+          //   label: 'Invoice Number',
+          //   hint: 'Enter invoice number if available',
+          // ),
           SizedBox(height: 2.h),
           CustomInputField(
             controller: controller.paidAmount,
@@ -482,6 +485,14 @@ class AddPurchasePage extends StatelessWidget {
                     )),
               ],
             ),
+          ),
+          SizedBox(height: 2.h),
+
+          DateSelectorWidget(
+            controller: dateSelectorController,
+            label: 'Select  Date',
+            showCard: false,
+            hint: 'Choose a date',
           ),
         ],
       ),
@@ -553,11 +564,13 @@ class AddPurchasePage extends StatelessWidget {
             // Small delay to ensure keyboard is dismissed
             await Future.delayed(Duration(milliseconds: 100));
 
-            controller.createPurchaseRecord();
+            controller.createPurchaseRecord(
+                dateSelectorController.dateController.text,
+                dateSelectorController.selectedMonthYear.value);
           },
           icon: Icon(LucideIcons.checkCircle2, color: Colors.white),
           label: Text(
-            'Create Purchase',
+            'Save ',
             style: GoogleFonts.notoSansDevanagari(
               fontSize: 16.sp,
               fontWeight: FontWeight.w600,

@@ -263,7 +263,7 @@ class RiceHuskPage extends StatelessWidget {
         ),
         icon: Icon(LucideIcons.checkCircle2, color: Colors.white),
         label: Text(
-          'धानको भुस रेकर्ड गर्नुहोस्',
+          'Save Record',
           style: GoogleFonts.notoSansDevanagari(
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,

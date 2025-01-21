@@ -21,10 +21,6 @@ class FeedConsumptionController extends GetxController {
   // Loading state
   final isLoading = false.obs;
 
-  // Dummy data for feed types and brands
-  final feedTypes = ['starter', 'grower', 'layer'].obs;
-  final feedBrands = ['Brand A', 'Brand B', 'Brand C', 'Brand D'].obs;
-
   void _showLoadingDialog() {
     Get.dialog(
       Dialog(
@@ -88,12 +84,6 @@ class FeedConsumptionController extends GetxController {
 
       if (response.status == ApiStatus.SUCCESS) {
         // Print success response
-        log("========= Feed Consumption Success =========");
-        log("Consumption ID: ${response.response?.consumptionId}");
-        log("Batch ID: ${response.response?.batchId}");
-        log("Feed Type: ${response.response?.feedType}");
-        log("Quantity (kg): ${response.response?.quantityKg}");
-        log("=======================================");
 
         CustomDialog.showSuccess(
           message: 'Feed consumption recorded successfully.',

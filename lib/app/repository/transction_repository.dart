@@ -9,6 +9,12 @@ import 'package:poultry/app/service/api_client.dart';
 class TransactionRepository {
   final FirebaseClient _firebaseClient = FirebaseClient();
 
+  // Helper method to get current time in HH:mm:ss format
+  String _getCurrentTime() {
+    final now = DateTime.now();
+    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+  }
+
   Future<ApiResponse<TransactionResponseModel>> createTransaction(
       Map<String, dynamic> transactionData) async {
     try {
@@ -34,24 +40,6 @@ class TransactionRepository {
     }
   }
 
-// to fetch the transciton by party --------
-
-  Future<ApiResponse<List<TransactionResponseModel>>> getPartyTransactions(
-      String partyId) async {
-    try {
-      log("Fetching transactions for party: $partyId");
-
-      return await _firebaseClient.getCollection<TransactionResponseModel>(
-        collectionPath: FirebasePath.transactions,
-        responseType: (json) => TransactionResponseModel.fromJson(json),
-        queryBuilder: (query) => query.where('partyId', isEqualTo: partyId),
-      );
-    } catch (e) {
-      log("Error fetching party transactions: $e");
-      return ApiResponse.error("Failed to fetch transactions: $e");
-    }
-  }
-
 //  ------- creating payment transaction ---------
   Future<ApiResponse<TransactionResponseModel>> createPaymentTransaction({
     required String partyId,
@@ -60,6 +48,8 @@ class TransactionRepository {
     required double currentCredit, // Added current credit parameter
     required String paymentMethod,
     required String transactionUnder,
+    required String date,
+    required String yearMonth,
     String? notes,
     String? bankDetails,
     required String remarks,
@@ -82,8 +72,8 @@ class TransactionRepository {
         partyId: partyId,
         actionId: '',
         adminId: adminId,
-        yearMonth: DateTime.now().toString().substring(0, 7),
-        transactionDate: DateTime.now().toIso8601String(),
+        yearMonth: yearMonth,
+        transactionDate: date,
         transactionType: isMoneyReciving ? 'PAYMENT_IN' : 'PAYMENT_OUT',
         totalAmount: amount,
         paymentMethod: paymentMethod,
@@ -93,7 +83,8 @@ class TransactionRepository {
         status: newBalance == 0 ? 'FULL_PAID' : 'PARTIAL_PAID',
         transactionUnder: '',
         remarks: remarks,
-        moneyFlow: isMoneyReciving ? 'recive' : 'pay',
+        unpaidAmount: 0.0,
+        transactionTime: _getCurrentTime(), // Now just using time portion
       ).toJson();
 
       // Update party's credit amount
@@ -120,6 +111,7 @@ class TransactionRepository {
     }
   }
 
+// to create the business transction
   Future<ApiResponse<TransactionResponseModel>> createBusinessTransaction({
     required String partyId,
     required String adminId,
@@ -129,10 +121,13 @@ class TransactionRepository {
     required String paymentMethod,
     required String transactionUnder,
     required String actionId,
+    required String date,
+    required String yearMonth,
     required bool isSale, // true for sale, false for purchase
     String? notes,
     String? bankDetails,
     required String remarks,
+    required double unpaidAmount,
   }) async {
     try {
       final transactionType = isSale ? 'SALE' : 'PURCHASE';
@@ -160,8 +155,8 @@ class TransactionRepository {
         partyId: partyId,
         actionId: actionId,
         adminId: adminId,
-        yearMonth: DateTime.now().toString().substring(0, 7),
-        transactionDate: DateTime.now().toIso8601String(),
+        yearMonth: yearMonth,
+        transactionDate: date,
         transactionType: transactionType,
         totalAmount: totalAmount,
         paymentMethod: paymentMethod,
@@ -171,7 +166,8 @@ class TransactionRepository {
         status: status,
         transactionUnder: transactionUnder,
         remarks: remarks,
-        moneyFlow: isSale ? 'recive' : 'pay',
+        unpaidAmount: unpaidAmount,
+        transactionTime: _getCurrentTime(), // Now just using time portion
       ).toJson();
 
       // Update party with new credit amount

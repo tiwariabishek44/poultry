@@ -26,8 +26,6 @@ class MyVaccineController extends GetxController {
   final selectedDisease = ''.obs;
   final selectedMethod = ''.obs;
   final notesController = TextEditingController();
-  final dateController = TextEditingController();
-  final selectedDate = NepaliDateTime.now().obs;
   final selectedAge = ''.obs;
   final selectedAgeUnit = ''.obs;
 
@@ -40,8 +38,6 @@ class MyVaccineController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Set initial date
-    _updateDateDisplay();
 
     // Check if we have arguments passed from VaccineSchedulePage
     if (Get.arguments != null) {
@@ -52,26 +48,6 @@ class MyVaccineController extends GetxController {
       selectedAge.value = args['age'] ?? '';
       selectedAgeUnit.value = args['ageUnit'] ?? '';
     }
-  }
-
-  Future<void> pickDate() async {
-    final NepaliDateTime? picked = await showMaterialDatePicker(
-      context: Get.context!,
-      initialDate: selectedDate.value,
-      firstDate: NepaliDateTime(2070),
-      lastDate: NepaliDateTime(2090),
-      initialDatePickerMode: DatePickerMode.day,
-    );
-
-    if (picked != null && picked != selectedDate.value) {
-      selectedDate.value = picked;
-      _updateDateDisplay();
-    }
-  }
-
-  void _updateDateDisplay() {
-    dateController.text =
-        '${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}';
   }
 
   void _showLoadingDialog() {
@@ -103,7 +79,7 @@ class MyVaccineController extends GetxController {
     };
   }
 
-  Future<void> recordVaccination() async {
+  Future<void> recordVaccination(String date, String yearMonth) async {
     if (!formKey.currentState!.validate()) return;
 
     final adminId = _loginController.adminUid;
@@ -133,12 +109,12 @@ class MyVaccineController extends GetxController {
       final vaccineData = {
         'batchId': selectedBatchId,
         'adminId': adminId,
-        'yearMonth': selectedDate.value.toIso8601String().substring(0, 7),
-        'vaccineDate': dateController.text,
+        'yearMonth': yearMonth,
+        'vaccineDate': date,
         'vaccineName': selectedVaccineName.value,
         'disease': selectedDisease.value,
         'method': selectedMethod.value,
-        'birdAge': birdAge['age'],
+        'birdAge': '',
         'birdAgeUnit': birdAge['unit'],
         'isScheduled': true,
         'isCompleted': true,
@@ -185,22 +161,11 @@ class MyVaccineController extends GetxController {
     selectedDisease.value = '';
     selectedMethod.value = '';
     notesController.clear();
-    selectedDate.value = NepaliDateTime.now();
-    _updateDateDisplay();
   }
 
   @override
   void onClose() {
     notesController.dispose();
-    dateController.dispose();
     super.onClose();
-  }
-
-  // Validation methods
-  String? validateDate(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please select date';
-    }
-    return null;
   }
 }

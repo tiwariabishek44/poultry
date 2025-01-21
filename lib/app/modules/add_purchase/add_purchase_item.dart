@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/model/purchase_repsonse_model.dart';
+import 'package:poultry/app/modules/stock_item/stock_item_controller.dart';
 import 'package:poultry/app/widget/custom_input_field.dart';
+import 'package:poultry/app/widget/stock_item_selector.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class AddPurchaseItemsPage extends StatefulWidget {
@@ -18,7 +20,7 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
   final quantityController = TextEditingController();
   final rateController = TextEditingController();
   final unitController = TextEditingController();
-  final descriptionController = TextEditingController();
+  final stockItemcontroller = Get.put(StockItemsSelectorController());
 
   var selectedCategory = 'product';
   var selectedSubcategory = 'feed';
@@ -26,9 +28,20 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
 
   final categories = ['product', 'service'];
   final productSubcategories = ['feed', 'medicine', 'equipment', 'other'];
-  final serviceSubcategories = ['maintenance', 'veterinary', 'labor', 'other'];
+  final serviceSubcategories = ['maintenance', 'veterinary', 'other'];
   final numberFormat = NumberFormat("#,##,###");
 
+  final List<String> commonUnits = [
+    'kg', // Kilograms
+
+    'pieces', // Pieces
+    'ltr', // Liters
+    'ml', // Milliliters
+    'box', // Box
+    'bag', // Bag
+    'dozen', // Dozen
+    'pack' // Pack
+  ];
   @override
   void initState() {
     super.initState();
@@ -42,7 +55,6 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
     quantityController.dispose();
     rateController.dispose();
     unitController.dispose();
-    descriptionController.dispose();
     super.dispose();
   }
 
@@ -52,69 +64,6 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
     setState(() {
       totalAmount = quantity * rate;
     });
-  }
-
-  List<String> get currentSubcategories => selectedCategory == 'product'
-      ? productSubcategories
-      : serviceSubcategories;
-
-  Widget _buildCategoryChips() {
-    return Wrap(
-      spacing: 2.w,
-      children: categories.map((category) {
-        return ChoiceChip(
-          label: Text(
-            category.toUpperCase(),
-            style: TextStyle(
-              color: selectedCategory == category
-                  ? Colors.white
-                  : AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          selected: selectedCategory == category,
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.grey[200],
-          onSelected: (selected) {
-            setState(() {
-              selectedCategory = category;
-              selectedSubcategory = currentSubcategories[0];
-              itemNameController.clear();
-              quantityController.clear();
-              rateController.clear();
-              calculateTotal();
-            });
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildSubcategoryChips() {
-    return Wrap(
-      spacing: 2.w,
-      children: currentSubcategories.map((subcategory) {
-        return ChoiceChip(
-          label: Text(
-            subcategory.toUpperCase(),
-            style: TextStyle(
-              color: selectedSubcategory == subcategory
-                  ? Colors.white
-                  : AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          selected: selectedSubcategory == subcategory,
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.grey[200],
-          onSelected: (selected) {
-            setState(() {
-              selectedSubcategory = subcategory;
-            });
-          },
-        );
-      }).toList(),
-    );
   }
 
   @override
@@ -138,62 +87,236 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Select Category',
-                  style: GoogleFonts.notoSansDevanagari(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
+                Container(
+                  padding: EdgeInsets.all(3.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Selected Item:',
+                            style: GoogleFonts.notoSans(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(width: 3.w),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () =>
+                                  StockSelectorSheet.showSelector(),
+                              icon: Icon(Icons.add_circle_outline),
+                              label: Text('Select Item'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primaryColor,
+                                side: BorderSide(color: AppColors.primaryColor),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 4.w,
+                                  vertical: 1.5.h,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Obx(() {
+                        final selectedItem =
+                            stockItemcontroller.selectedItem.value;
+                        if (selectedItem == null) return SizedBox.shrink();
+
+                        return Padding(
+                          padding: EdgeInsets.only(top: 2.h),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  _getCategoryIcon(selectedItem.category),
+                                  SizedBox(width: 3.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          selectedItem.itemName,
+                                          style: GoogleFonts.notoSans(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        SizedBox(height: 0.5.h),
+                                        Text(
+                                          selectedItem.category.capitalize!,
+                                          style: GoogleFonts.notoSans(
+                                            fontSize: 14.sp,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                 ),
-                SizedBox(height: 1.h),
-                _buildCategoryChips(),
-                SizedBox(height: 2.h),
-                Text(
-                  'Select Subcategory',
-                  style: GoogleFonts.notoSansDevanagari(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 1.h),
-                _buildSubcategoryChips(),
                 SizedBox(height: 2.h),
                 CustomInputField(
-                  controller: itemNameController,
-                  label: 'Item Name',
+                  controller: quantityController,
+                  label: 'Quantity',
+                  keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter item name';
+                      return 'Required';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Invalid number';
                     }
                     return null;
                   },
                 ),
-                SizedBox(height: 2.h),
-                Row(
+                SizedBox(height: 1.h),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 2,
-                      child: CustomInputField(
-                        controller: quantityController,
-                        label: 'Quantity',
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Required';
-                          }
-                          if (double.tryParse(value) == null) {
-                            return 'Invalid number';
-                          }
-                          return null;
-                        },
+                    Text(
+                      'Unit',
+                      style: GoogleFonts.notoSans(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(width: 2.w),
-                    Expanded(
-                      child: CustomInputField(
-                        controller: unitController,
-                        label: 'Unit',
-                        hint: 'kg/pcs',
+                    SizedBox(height: 1.h),
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<String>(
+                          value: unitController.text.isEmpty
+                              ? null
+                              : unitController.text,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 4.w, vertical: 1.h),
+                            border: InputBorder.none,
+                          ),
+                          hint: Text(
+                            'Select Unit',
+                            style: GoogleFonts.notoSans(
+                              fontSize: 16.sp,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          items: [
+                            ...commonUnits.map((unit) => DropdownMenuItem(
+                                  value: unit,
+                                  child: Text(
+                                    unit,
+                                    style:
+                                        GoogleFonts.notoSans(fontSize: 16.sp),
+                                  ),
+                                )),
+                            // Add custom option at the end
+                            DropdownMenuItem(
+                              value: 'custom',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.add,
+                                      size: 16.sp,
+                                      color: AppColors.primaryColor),
+                                  SizedBox(width: 2.w),
+                                  Text(
+                                    'Custom Unit',
+                                    style: GoogleFonts.notoSans(
+                                      fontSize: 14.sp,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            if (value == 'custom') {
+                              // Show dialog for custom unit input
+                              Get.dialog(
+                                Dialog(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(4.w),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Enter Custom Unit',
+                                          style: GoogleFonts.notoSans(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        SizedBox(height: 2.h),
+                                        CustomInputField(
+                                          controller: TextEditingController(),
+                                          label: 'Unit',
+                                          hint: 'Enter unit name',
+                                        ),
+                                        SizedBox(height: 2.h),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () => Get.back(),
+                                              child: Text('Cancel'),
+                                            ),
+                                            SizedBox(width: 2.w),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                final customUnit = Get.find<
+                                                        TextEditingController>()
+                                                    .text;
+                                                if (customUnit.isNotEmpty) {
+                                                  unitController.text =
+                                                      customUnit;
+                                                }
+                                                Get.back();
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    AppColors.primaryColor,
+                                              ),
+                                              child: Text('Add'),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else if (value != null) {
+                              unitController.text = value;
+                            }
+                          },
+                          style: GoogleFonts.notoSans(
+                            fontSize: 14.sp,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -214,11 +337,6 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
                   },
                 ),
                 SizedBox(height: 2.h),
-                CustomInputField(
-                  controller: descriptionController,
-                  label: 'Description (Optional)',
-                  maxLines: 2,
-                ),
                 SizedBox(height: 2.h),
                 Container(
                   width: double.infinity,
@@ -266,44 +384,75 @@ class _AddPurchaseItemsPageState extends State<AddPurchaseItemsPage> {
         padding: EdgeInsets.all(2.h),
         child: SizedBox(
           width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() ?? false) {
-                final item = PurchaseItem(
-                  itemName: itemNameController.text,
-                  category: selectedCategory,
-                  subcategory: selectedSubcategory,
-                  quantity: double.parse(quantityController.text),
-                  unit:
-                      unitController.text.isEmpty ? null : unitController.text,
-                  rate: double.parse(rateController.text),
-                  total: totalAmount,
-                  description: descriptionController.text.isEmpty
-                      ? null
-                      : descriptionController.text,
-                );
+          child: Obx(() {
+            final selectedItem = stockItemcontroller.selectedItem.value;
 
-                Get.back(result: item);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              padding: EdgeInsets.symmetric(vertical: 1.5.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            return ElevatedButton(
+              onPressed: selectedItem == null
+                  ? null // Disable button if no item selected
+                  : () {
+                      if (formKey.currentState?.validate() ?? false) {
+                        final item = PurchaseItem(
+                          itemName: selectedItem.itemName,
+                          category: selectedItem.category,
+                          quantity: double.parse(quantityController.text),
+                          unit: unitController.text.isEmpty
+                              ? null
+                              : unitController.text,
+                          rate: double.parse(rateController.text),
+                          total: totalAmount,
+                        );
+
+                        Get.back(result: item);
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            ),
-            child: Text(
-              'Add Item',
-              style: GoogleFonts.notoSansDevanagari(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
+              child: Text(
+                'Add Item',
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
               ),
-            ),
-          ),
+            );
+          }),
         ),
       ),
+    );
+  }
+
+  Widget _getCategoryIcon(String category) {
+    IconData icon;
+    Color color;
+
+    switch (category.toLowerCase()) {
+      case 'product':
+        icon = Icons.inventory_2_outlined;
+        color = Colors.blue;
+        break;
+      case 'service':
+        icon = Icons.build_outlined;
+        color = Colors.green;
+        break;
+      default:
+        icon = Icons.category_outlined;
+        color = Colors.grey;
+    }
+
+    return Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: color, size: 20.sp),
     );
   }
 }

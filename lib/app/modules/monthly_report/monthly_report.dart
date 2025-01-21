@@ -4,20 +4,15 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/model/batch_response_model.dart';
-import 'package:poultry/app/model/egg_collection_response.dart';
-import 'package:poultry/app/modules/analytics_page/analytics_controller.dart';
-import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
-import 'package:poultry/app/modules/report_generator/report_generator.dart';
-import 'package:poultry/app/repository/batch_repository.dart';
-import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/filter_dialouge.dart';
 import 'package:poultry/app/widget/monthly_report/egg_report_view.dart';
+import 'package:poultry/app/widget/monthly_report/empty_report_widget.dart';
 import 'package:poultry/app/widget/monthly_report/feeds_report_view.dart';
 import 'package:poultry/app/widget/monthly_report/mortality_report_view.dart';
 import 'package:poultry/app/widget/monthly_report/rice_husk_report_view.dart';
@@ -48,8 +43,17 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
 
   // Callback when a date is selected from the picker
   void _onDateSelected(String date) {
-    setState(() {});
-    log('Select year month : $date');
+    setState(() {
+      // Update the selected date
+      _selectedDate = date;
+
+      // Fetch data for the selected date
+      reportController.fetchEggCollections();
+      reportController.fetchFeedConsumptions();
+      reportController.fetchMortalities();
+      reportController.fetchRiceHusks();
+      reportController.fetchVaccines();
+    });
   }
 
   @override
@@ -94,26 +98,18 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          // Replace your existing filter FloatingActionButton with this:
           FloatingActionButton(
             onPressed: () {
-              // Add your report action here
-              // Get.to(()=>DynamicReportPage(reportData: reportData))
-            },
-            child: Icon(LucideIcons.file),
-            heroTag: null,
-          ),
-          SizedBox(width: 10),
-          FloatingActionButton(
-            onPressed: () {
-              // Add your filter action here
-              showDialog(
-                context: context,
-                builder: (context) => FilterDialog(
+              Get.bottomSheet(
+                FilterBottomSheet(
                   onDateSelected: _onDateSelected,
                 ),
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
               );
             },
-            child: Icon(Icons.filter_list),
+            child: Icon(LucideIcons.filter),
             heroTag: null,
           ),
         ],
@@ -134,7 +130,12 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
       case 'भुस Record':
         return RiceHuskReportView();
       default:
-        return Center(child: Text('Select a category'));
+        return Center(
+            child: EmptyStateWidget(
+          icon: Icons.medication_outlined,
+          title: 'No report found',
+          message: '',
+        ));
     }
   }
 }

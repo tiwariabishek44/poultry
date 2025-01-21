@@ -24,8 +24,12 @@ class _AddSaleItemSPageState extends State<AddSaleItemSPage> {
   String selectedEggType = 'medium';
   double totalAmount = 0.0;
 
-  final categories = ['egg', 'hen', 'manure'];
-  final eggTypes = ['small', 'medium', 'large', 'large_plus'];
+  final categories = [
+    'egg',
+  ];
+  // final categories = ['egg', 'hen', 'manure'];
+
+  final eggTypes = ['small', 'medium', 'large', 'large_plus', 'crack'];
   final numberFormat = NumberFormat("#,##,###");
 
   @override

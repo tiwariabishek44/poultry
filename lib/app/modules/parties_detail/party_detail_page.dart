@@ -36,6 +36,12 @@ class PartyDetailsPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             )),
+        leading: IconButton(
+          icon: Icon(Icons.chevron_left),
+          onPressed: () {
+            Get.back();
+          },
+        ),
       ),
       body: Obx(() {
         if (controller.isLoadingDetails.value) {
@@ -52,7 +58,7 @@ class PartyDetailsPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildBalanceCard(),
-              _buildQuickActions(),
+              // _buildQuickActions(),
               Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
@@ -80,6 +86,15 @@ class PartyDetailsPage extends StatelessWidget {
   }
 
   Widget _buildBalanceCard() {
+    final party = controller.partyDetails.value!;
+    final isCustomer = party.partyType == 'customer';
+    final isCredited = party.isCredited;
+    final balanceText =
+        isCredited ? (isCustomer ? 'To Receive' : 'To Give') : 'Settled';
+    final balanceColor = isCredited
+        ? (isCustomer ? Color(0xFF2E7D32) : Color(0xFFD32F2F))
+        : AppColors.primaryColor;
+
     return Container(
       width: double.infinity,
       margin: EdgeInsets.all(16),
@@ -87,9 +102,7 @@ class PartyDetailsPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
-          color: controller.partyDetails.value!.isCredited
-              ? Color(0xFF2E7D32)
-              : AppColors.primaryColor,
+          color: balanceColor,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -110,19 +123,13 @@ class PartyDetailsPage extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: controller.partyDetails.value!.isCredited
-                      ? Colors.green.shade50
-                      : Colors.green.shade50,
+                  color: balanceColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  controller.partyDetails.value!.isCredited
-                      ? 'To Recive'
-                      : 'Settled',
+                  balanceText,
                   style: TextStyle(
-                    color: controller.partyDetails.value!.isCredited
-                        ? Color(0xFF2E7D32)
-                        : AppColors.primaryColor,
+                    color: balanceColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -131,13 +138,11 @@ class PartyDetailsPage extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'Rs. ${numberFormat.format(controller.partyDetails.value!.creditAmount)}',
+            'Rs. ${numberFormat.format(party.creditAmount)}',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: controller.partyDetails.value!.isCredited
-                  ? Color(0xFF2E7D32)
-                  : AppColors.primaryColor,
+              color: balanceColor,
             ),
           ),
         ],
@@ -239,7 +244,9 @@ class PartyDetailsPage extends StatelessWidget {
 
           final date = DateTime.parse(transaction.transactionDate);
           final formattedDate = "${date.day}/${date.month}/${date.year}";
-
+          // Format the transaction time to show only hour and minute
+          final time = transaction.transactionTime.split(':');
+          final formattedTime = "${time[0]}:${time[1]}";
           return Card(
             margin: EdgeInsets.only(bottom: 1.5.h),
             elevation: 0.5,
@@ -294,35 +301,53 @@ class PartyDetailsPage extends StatelessWidget {
                     ],
                   ),
                   Divider(height: 1.h),
-                  // Amount and Status
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        formattedDate,
+                        formattedDate + ' - ' + formattedTime,
                         style: GoogleFonts.inter(
                           fontSize: 14.sp,
-                          color: Colors.grey.shade600,
+                          color: const Color.fromARGB(255, 7, 7, 7),
                         ),
                       ),
                       if (transaction.transactionType != 'OPENING_BALANCE')
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            transaction.getStatusDisplay(),
-                            style: GoogleFonts.inter(
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w500,
-                              color: statusColor,
+                        Column(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                transaction.getStatusDisplay(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: statusColor,
+                                ),
+                              ),
                             ),
-                          ),
+                            if (transaction.transactionType !=
+                                    'OPENING_BALANCE' &&
+                                transaction.unpaidAmount != null &&
+                                transaction.unpaidAmount! >
+                                    0) // Add null check here
+                              Padding(
+                                padding: EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'Unpaid :Rs. ${numberFormat.format(transaction.unpaidAmount ?? 0)}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14.sp,
+                                    color: Colors.red.shade700,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                     ],
                   ),
@@ -358,11 +383,6 @@ class PartyDetailsPage extends StatelessWidget {
     });
   }
 
-  String _formatDate(String date) {
-    final parsedDate = DateTime.parse(date);
-    return '${parsedDate.year}-${parsedDate.month}-${parsedDate.day}';
-  }
-
   Widget _buildFloatingButtons() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -388,7 +408,7 @@ class PartyDetailsPage extends StatelessWidget {
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Color.fromARGB(255, 165, 44, 35),
                 padding: EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -404,11 +424,13 @@ class PartyDetailsPage extends StatelessWidget {
                     PaymentRecordPage(party: controller.partyDetails.value!));
               },
               label: Text(
-                'Payment Recived',
+                controller.partyDetails.value!.partyType == 'customer'
+                    ? 'Payment Recived'
+                    : "Payment Give",
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Color.fromARGB(255, 54, 140, 57),
                 padding: EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

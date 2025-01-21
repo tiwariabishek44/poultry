@@ -4,8 +4,10 @@ import 'package:get/get.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/monthly_report/monthly_report.dart';
 import 'package:poultry/app/modules/my_calender/my_calender.dart';
+import 'package:poultry/app/utils/batch_card/active_batch_seciton.dart';
 import 'package:poultry/app/utils/dashboard_header/dashboard_header.dart';
 import 'package:poultry/app/utils/farmer_status_card.dart';
+import 'package:poultry/app/widget/bottom_sheet.dart';
 import 'package:poultry/app/widget/up_comming_task.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -38,8 +40,6 @@ class PoultryDashboard extends StatelessWidget {
                           children: [
                             // Morning Status Card with Weather
                             FarmStatusCard(),
-
-                            SizedBox(height: 1.h), // Space for FAB
 
                             // Quick Action Section
                             Padding(
@@ -75,11 +75,9 @@ class PoultryDashboard extends StatelessWidget {
                                         ),
                                       ),
                                       SizedBox(height: 2.h),
-                                      GridView.count(
-                                        shrinkWrap: true,
-                                        crossAxisCount: 4,
-                                        crossAxisSpacing: 10,
-                                        mainAxisSpacing: 10,
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
                                         children: [
                                           _buildActionButton(
                                             'Monthly Report',
@@ -96,59 +94,6 @@ class PoultryDashboard extends StatelessWidget {
                                             Colors.purple,
                                             () {
                                               Get.to(() => MyCalendarView());
-                                            },
-                                          ),
-                                          _buildActionButton(
-                                            'Daily Feed',
-                                            Icons.shopping_bag_outlined,
-                                            Colors.green,
-                                            () {
-                                              // Get.back();
-                                              // Navigate to feed recording
-                                            },
-                                          ),
-                                          _buildActionButton(
-                                            'Egg Collection',
-                                            Icons.favorite_outline,
-                                            Colors.red,
-                                            () {
-                                              // Get.back();
-                                              // Navigate to health recording
-                                            },
-                                          ),
-                                          _buildActionButton(
-                                            'Monthly Report',
-                                            Icons.bar_chart,
-                                            Colors.blue,
-                                            () {
-                                              Get.to(() => MonthlyReportPage());
-                                              // Navigate to monthly report
-                                            },
-                                          ),
-                                          _buildActionButton(
-                                            'My Calendar',
-                                            Icons.calendar_today,
-                                            Colors.purple,
-                                            () {
-                                              Get.to(() => MyCalendarView());
-                                            },
-                                          ),
-                                          _buildActionButton(
-                                            'Daily Feed',
-                                            Icons.shopping_bag_outlined,
-                                            Colors.green,
-                                            () {
-                                              // Get.back();
-                                              // Navigate to feed recording
-                                            },
-                                          ),
-                                          _buildActionButton(
-                                            'Egg Collection',
-                                            Icons.favorite_outline,
-                                            Colors.red,
-                                            () {
-                                              // Get.back();
-                                              // Navigate to health recording
                                             },
                                           ),
                                         ],
@@ -174,6 +119,28 @@ class PoultryDashboard extends StatelessWidget {
               ],
             ),
           ),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: AppColors.primaryColor,
+            elevation: 4,
+            child: const Icon(Icons.add, color: Colors.white),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => FractionallySizedBox(
+                  heightFactor: 0.85, // This makes it take 80% of screen height
+                  child: const ActivityBottomSheet(),
+                ),
+              );
+            },
+          ),
+          // floating action button circular eget
+
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         ));
   }
 
@@ -260,85 +227,6 @@ class PoultryDashboard extends StatelessWidget {
       ),
     );
   }
-
-  // Widget _buildQuickActionFAB() {
-  //   return FloatingActionButton(
-  //     onPressed: () {
-  //       _showQuickActionSheet();
-  //     },
-  //     backgroundColor: AppColors.primaryColor,
-  //     child: const Icon(Icons.add),
-  //   );
-  // }
-
-  // void _showQuickActionSheet() {
-  //   Get.bottomSheet(
-  //     Container(
-  //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-  //       decoration: const BoxDecoration(
-  //         color: Colors.white,
-  //         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-  //       ),
-  //       child: Column(
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           // Sheet Header
-  //           Row(
-  //             children: [
-  //               const Text(
-  //                 'Quick Actions',
-  //                 style: TextStyle(
-  //                   fontSize: 20,
-  //                   fontWeight: FontWeight.bold,
-  //                 ),
-  //               ),
-  //               const Spacer(),
-  //               IconButton(
-  //                 icon: const Icon(Icons.close),
-  //                 onPressed: () => Get.back(),
-  //               ),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 24),
-
-  //           // Action Buttons
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceAround,
-  //             children: [
-  //               _buildQuickActionButton(
-  //                 'Record Eggs',
-  //                 Icons.egg_outlined,
-  //                 Colors.orange,
-  //                 () {
-  //                   Get.back();
-  //                   // Navigate to egg collection
-  //                 },
-  //               ),
-  //               _buildQuickActionButton(
-  //                 'Add Feed',
-  //                 Icons.shopping_bag_outlined,
-  //                 Colors.green,
-  //                 () {
-  //                   Get.back();
-  //                   // Navigate to feed recording
-  //                 },
-  //               ),
-  //               _buildQuickActionButton(
-  //                 'Health Log',
-  //                 Icons.favorite_outline,
-  //                 Colors.red,
-  //                 () {
-  //                   Get.back();
-  //                   // Navigate to health recording
-  //                 },
-  //               ),
-  //             ],
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildQuickActionButton(
     String label,

@@ -99,7 +99,6 @@ class FlockDeathController extends GetxController {
           log("Notes: ${response.response?.notes}");
         }
         log("=======================================");
-        BatchStreamController.instance.notifyBatchUpdate();
 
         // Show success dialog
         CustomDialog.showSuccess(

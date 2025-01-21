@@ -5,6 +5,7 @@ import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/model/salse_resonse_model.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/parties_detail/parties_controller.dart';
+import 'package:poultry/app/modules/transction_main_screen/transction_controller.dart';
 import 'package:poultry/app/repository/salse_reposityro.dart';
 
 import 'package:poultry/app/service/api_client.dart';
@@ -14,6 +15,7 @@ import 'package:poultry/app/widget/loading_State.dart';
 class SalesController extends GetxController {
   static SalesController get instance => Get.find();
   final partyDetailController = Get.put(PartyController());
+  final controller = Get.put(TransactionsController());
 
   final _salesRepository = SalesRepository();
   final _loginController = Get.find<LoginController>();
@@ -68,7 +70,7 @@ class SalesController extends GetxController {
     return 'PARTIAL';
   }
 
-  Future<void> createSaleRecord() async {
+  Future<void> createSaleRecord(String date, String yearMOnth) async {
     final adminId = _loginController.adminUid;
 
     if (adminId == null) {
@@ -102,9 +104,8 @@ class SalesController extends GetxController {
       final saleData = {
         'partyId': partyId.value,
         'adminId': adminId,
-        'yearMonth': now.toIso8601String().substring(0, 7),
-        'saleDate':
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        'yearMonth': yearMOnth,
+        'saleDate': date,
         'saleItems': selectedItems.map((item) => item.toJson()).toList(),
         'totalAmount': totalAmount.value,
         'paidAmount': double.tryParse(paidAmount.text) ?? 0.0,
@@ -121,6 +122,7 @@ class SalesController extends GetxController {
       if (response.status == ApiStatus.SUCCESS) {
         partyDetailController.fetchPartyDetails(partyId.value);
         partyDetailController.fetchParties();
+        controller.fetchCurrentMonthTransactions();
 
         CustomDialog.showSuccess(
           message: 'Sale record created successfully.',

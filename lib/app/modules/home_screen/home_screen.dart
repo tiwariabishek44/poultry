@@ -3,19 +3,18 @@ import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/add_batch/add_batch.dart';
-import 'package:poultry/app/modules/analytics_page/analytics_page.dart';
-import 'package:poultry/app/modules/batchOperations/batch_operations.dart';
 import 'package:poultry/app/modules/egg_collection_add/egg_colleciton.dart';
 import 'package:poultry/app/modules/feed_consumption/feed_consumption.dart';
 import 'package:poultry/app/modules/flock_death/flock_death.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/my_vaccine/vaccine_schedule.dart';
-import 'package:poultry/app/modules/add_party/add_parties.dart';
-import 'package:poultry/app/modules/parties_detail/party_list.dart';
-import 'package:poultry/app/modules/report_generator/report_generator.dart';
 import 'package:poultry/app/modules/rice_husk_spray/rice_husk_spray.dart';
+import 'package:poultry/app/modules/stock_item/stock_item_list.dart';
+import 'package:poultry/app/widget/custom_buttons.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../widget/custom_pop_up.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
@@ -68,11 +67,11 @@ class HomeScreen extends StatelessWidget {
               _buildGridButtons([
                 ButtonData('Egg Collection', 'assets/egg.jpeg',
                     () => Get.to(() => EggCollectionPage())),
-                ButtonData('Daily Feed', 'assets/layers.jpeg',
+                ButtonData('Daily Feed', 'assets/grains.pngs',
                     () => Get.to(() => FeedConsumptionPage())),
                 ButtonData('Motality Record', 'assets/egg.jpeg',
                     () => Get.to(() => FlockDeathPage())),
-                ButtonData('भुस Record', 'assets/layers.jpeg',
+                ButtonData('भुस Record', 'assets/nusk.jpeg',
                     () => Get.to(() => RiceHuskPage())),
               ]),
             ],
@@ -82,18 +81,8 @@ class HomeScreen extends StatelessWidget {
             'Batch Management',
             [
               _buildGridButtons([
-                ButtonData('Add New Batch', 'assets/egg.jpeg',
+                ButtonData('Add New Batch', 'assets/chicks.png',
                     () => Get.to(() => AddBatchPage())),
-                ButtonData(
-                    'Batch Upgrade',
-                    'assets/layers.jpeg',
-                    () => Get.to(
-                        () => BatchUpgradePage(batchId: '', currentStage: ''))),
-                ButtonData(
-                    'Batch Retire',
-                    'assets/egg.jpeg',
-                    () => Get.to(
-                        () => BatchUpgradePage(batchId: '', currentStage: ''))),
               ]),
             ],
           ),
@@ -102,15 +91,28 @@ class HomeScreen extends StatelessWidget {
             'Healty & Medication',
             [
               _buildGridButtons([
-                ButtonData('Vaccination', 'assets/layers.jpeg',
+                ButtonData('Vaccination', 'assets/vaccine.png',
                     () => Get.to(() => VaccineSchedulePage())),
 
-                // buttons for the report generator
-                ButtonData('Add Party', 'assets/egg.jpeg',
-                    () => Get.to(() => PartyListPage())),
+                // ButtonData('Stock Items', 'assets/layers.jpeg',
+                //     () => Get.to(() => StockItemsListPage())),
               ]),
             ],
           ),
+          MenuButton(
+              title: 'Log out ',
+              subtitle: '',
+              icon: LucideIcons.logOut,
+              onTap: () {
+                CustomDialog.showConfirmation(
+                    title: 'Logout',
+                    message: 'Are you sure you want to logout?',
+                    confirmText: 'Logout',
+                    onConfirm: () {
+                      Get.find<LoginController>().logout();
+                    });
+              },
+              iconBackgroundColor: AppColors.primaryColor.withOpacity(0.1)),
         ],
       ),
     );
@@ -154,18 +156,18 @@ class HomeScreen extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(6),
           side: BorderSide(color: Colors.grey[300]!),
         ),
       ),
       child: Row(
         children: [
-          Image.asset(
-            imagePath,
-            width: 24.sp,
-            height: 24.sp,
-            fit: BoxFit.contain,
-          ),
+          // Image.asset(
+          //   imagePath,
+          //   width: 24.sp,
+          //   height: 24.sp,
+          //   fit: BoxFit.contain,
+          // ),
           SizedBox(width: 3.w),
           Expanded(
             child: Text(
@@ -201,31 +203,6 @@ class HomeScreen extends StatelessWidget {
           'के तपाईं लग आउट गर्न चाहनुहुन्छ?',
           style: GoogleFonts.notoSansDevanagari(fontSize: 16.sp),
         ),
-        actions: [
-          TextButton(
-            child: Text(
-              'रद्द गर्नुहोस्',
-              style: GoogleFonts.notoSansDevanagari(
-                fontSize: 16.sp,
-                color: Colors.grey[700],
-              ),
-            ),
-            onPressed: () => Get.back(),
-          ),
-          TextButton(
-            child: Text(
-              'लग आउट गर्नुहोस्',
-              style: GoogleFonts.notoSansDevanagari(
-                fontSize: 16.sp,
-                color: AppColors.primaryColor,
-              ),
-            ),
-            onPressed: () {
-              Get.find<LoginController>().logout();
-              Get.back();
-            },
-          ),
-        ],
       ),
     );
   }

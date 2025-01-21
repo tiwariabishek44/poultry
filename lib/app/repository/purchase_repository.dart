@@ -36,6 +36,8 @@ class PurchaseRepository {
         await _transactionRepository.createBusinessTransaction(
           partyId: purchaseData['partyId'],
           adminId: purchaseData['adminId'],
+          date: purchaseData['purchaseDate'],
+          yearMonth: purchaseData['yearMonth'],
           actionId: docRef.id,
           totalAmount: purchaseData['totalAmount'],
           paidAmount: purchaseData['paidAmount'],
@@ -46,6 +48,8 @@ class PurchaseRepository {
               '', // this is for passing the bank name, or wallet name
           notes: purchaseData['notes'],
           remarks: remarks,
+          unpaidAmount:
+              purchaseData['totalAmount'] - purchaseData['paidAmount'],
         );
       }
 

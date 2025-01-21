@@ -99,6 +99,7 @@ class MonthlyReportController extends GetxController {
 
 // to fetch the motality
   Future<void> fetchMortalities() async {
+    log("thi si the motality report fecingn");
     isLoading.value = true;
     error.value = null;
 

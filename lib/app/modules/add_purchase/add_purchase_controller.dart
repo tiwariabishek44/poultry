@@ -5,6 +5,9 @@ import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/model/purchase_repsonse_model.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/parties_detail/parties_controller.dart';
+import 'package:poultry/app/modules/transction_main_screen/transction_controller.dart';
+import 'package:poultry/app/repository/purchase_repository.dart';
+import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
 import 'package:poultry/app/widget/loading_State.dart';
 
@@ -12,6 +15,8 @@ class PurchaseController extends GetxController {
   static PurchaseController get instance => Get.find();
   final partyDetailController = Get.put(PartyController());
   final _loginController = Get.find<LoginController>();
+  final _purchaseRepository = PurchaseRepository();
+  final controller = Get.put(TransactionsController());
 
   // Observable lists and values
   final selectedItems = <PurchaseItem>[].obs;
@@ -26,6 +31,7 @@ class PurchaseController extends GetxController {
   final invoiceNumber = TextEditingController();
   final partyId = ''.obs;
   final partyCurrentCredit = 0.0.obs;
+  final partyName = ''.obs;
 
   void _showLoadingDialog() {
     Get.dialog(
@@ -64,7 +70,7 @@ class PurchaseController extends GetxController {
     return 'PARTIAL';
   }
 
-  Future<void> createPurchaseRecord() async {
+  Future<void> createPurchaseRecord(String date, String yearMonth) async {
     final adminId = _loginController.adminUid;
 
     if (adminId == null) {
@@ -91,13 +97,15 @@ class PurchaseController extends GetxController {
     _showLoadingDialog();
 
     try {
-      final DateTime now = NepaliDateTime.now();
+      // Generate remarks for the transaction
+      final itemNames = selectedItems.map((item) => item.itemName).toList();
+      final remarks = '${partyName} : ${itemNames.join(", ")} ';
+
       final purchaseData = {
         'partyId': partyId.value,
         'adminId': adminId,
-        'yearMonth': now.toIso8601String().substring(0, 7),
-        'purchaseDate':
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        'yearMonth': yearMonth,
+        'purchaseDate': date,
         'purchaseItems': selectedItems.map((item) => item.toJson()).toList(),
         'totalAmount': totalAmount.value,
         'paidAmount': double.tryParse(paidAmount.text) ?? 0.0,
@@ -108,16 +116,29 @@ class PurchaseController extends GetxController {
         if (notes.text.isNotEmpty) 'notes': notes.text,
       };
 
-      // TODO: Implement purchase record creation with repository
-      // For now, just show success dialog
+      final response = await _purchaseRepository.createPurchaseRecord(
+          purchaseData, partyCurrentCredit.value, remarks);
+
       Get.back(); // Close loading dialog
-      CustomDialog.showSuccess(
-        message: 'Purchase record created successfully.',
-        onConfirm: () {
-          Get.back();
-          _clearForm();
-        },
-      );
+
+      if (response.status == ApiStatus.SUCCESS) {
+        // Update party details to reflect new credit
+        partyDetailController.fetchPartyDetails(partyId.value);
+        partyDetailController.fetchParties();
+        controller.fetchCurrentMonthTransactions();
+
+        CustomDialog.showSuccess(
+          message: 'Purchase record created successfully.',
+          onConfirm: () {
+            Get.back();
+            _clearForm();
+          },
+        );
+      } else {
+        CustomDialog.showError(
+          message: response.message ?? 'Failed to create purchase record',
+        );
+      }
     } catch (e) {
       Get.back(); // Close loading dialog
       CustomDialog.showError(

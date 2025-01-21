@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/config/firebase_path.dart';
 import 'package:poultry/app/model/party_response_model.dart';
 import 'package:poultry/app/repository/transction_repository.dart';
@@ -7,6 +8,10 @@ import 'package:poultry/app/service/api_client.dart';
 class PartyRepository {
   final FirebaseClient _firebaseClient = FirebaseClient();
   final TransactionRepository _transactionRepository = TransactionRepository();
+  String _getCurrentTime() {
+    final now = DateTime.now();
+    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+  }
 
   // Create new party
   Future<ApiResponse<PartyResponseModel>> createParty(
@@ -35,23 +40,26 @@ class PartyRepository {
       if (partyResponse.status == ApiStatus.SUCCESS) {
         // Create opening balance transaction using TransactionRepository
         final creditAmount = partyData['creditAmount'] as double;
-        final now = DateTime.now();
+        final now = NepaliDateTime.now();
         final yearMonth = "${now.year}-${now.month.toString().padLeft(2, '0')}";
-
+        log(' this is the date   ${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} and month $yearMonth');
         final transactionData = {
           'partyId': docRef.id,
           'adminId': partyData['adminId'],
           'yearMonth': yearMonth,
-          'transactionDate': now.toIso8601String(),
+          'transactionDate':
+              "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}",
           'transactionType': 'OPENING_BALANCE',
           'totalAmount': creditAmount.abs(),
           'balance': creditAmount.abs(),
           'paymentMethod': '',
           'status': '',
+
+          "transactionTime": _getCurrentTime(), // Now just using time portion
+
           "transactionUnder": '',
           'notes': 'Opening Balance  of ( ${creditAmount.abs()} )',
           'remarks': 'Opening Balance   or ${partyData['partyName']}',
-          'moneyFlow': '',
         };
 
         await _transactionRepository.createTransaction(transactionData);
@@ -96,27 +104,6 @@ class PartyRepository {
     } catch (e) {
       log("Error in getParty: $e");
       return ApiResponse.error("Failed to fetch party: $e");
-    }
-  }
-
-  // Update party credit amount
-  Future<ApiResponse<PartyResponseModel>> updatePartyCredit(
-      String partyId, double newAmount) async {
-    try {
-      log("Updating credit for party $partyId: $newAmount");
-
-      final updates = {'creditAmount': newAmount};
-
-      return await _firebaseClient.postDocument<PartyResponseModel>(
-        collectionPath: FirebasePath.parties,
-        documentId: partyId,
-        data: updates,
-        responseType: (json) =>
-            PartyResponseModel.fromJson(json, partyId: partyId),
-      );
-    } catch (e) {
-      log("Error updating party credit: $e");
-      return ApiResponse.error("Failed to update party credit: $e");
     }
   }
 }

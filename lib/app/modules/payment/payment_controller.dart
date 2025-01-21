@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/parties_detail/parties_controller.dart';
+import 'package:poultry/app/modules/transction_main_screen/transction_controller.dart';
 import 'package:poultry/app/repository/transction_repository.dart';
 import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
@@ -17,6 +18,7 @@ class PaymentController extends GetxController {
   final _transactionRepository = TransactionRepository();
   final _loginController = Get.find<LoginController>();
   final partyDetailController = Get.put(PartyController());
+  final controller = Get.put(TransactionsController());
 
   // Form key
   final formKey = GlobalKey<FormState>();
@@ -33,11 +35,22 @@ class PaymentController extends GetxController {
   final selectedDate = NepaliDateTime.now().obs;
   final isLoading = false.obs;
   final isCustomer = true.obs;
+  final totalCredit = 0.0.obs;
+  final remainingAmount = 0.0.obs;
 
   @override
   void onInit() {
     super.onInit();
     _updateDateDisplay();
+    // Add listener to amountController
+    amountController.addListener(() {
+      calculateRemainingAmount();
+    });
+  }
+
+  void calculateRemainingAmount() {
+    double currentAmount = double.tryParse(amountController.text) ?? 0;
+    remainingAmount.value = totalCredit.value - currentAmount;
   }
 
   Future<void> pickDate() async {
@@ -91,6 +104,8 @@ class PaymentController extends GetxController {
           partyId: partyId,
           adminId: adminId,
           amount: amount,
+          date: dateController.text,
+          yearMonth: '${selectedDate.value.year}-${selectedDate.value.month}',
           currentCredit: currentCredit,
           paymentMethod: selectedPaymentMethod.value,
           transactionUnder: selectedTransactionUnder.value,
@@ -98,7 +113,9 @@ class PaymentController extends GetxController {
           bankDetails: bankDetailsController.text.isEmpty
               ? ''
               : bankDetailsController.text,
-          remarks: '$amount  recive from.   $partyName',
+          remarks: isCustomer.value
+              ? '$amount  recive from.   $partyName'
+              : '$amount  paid to.   $partyName',
           isMoneyReciving: isCustomer.value);
 
       Get.back(); // Close loading dialog
@@ -106,6 +123,7 @@ class PaymentController extends GetxController {
       if (response.status == ApiStatus.SUCCESS) {
         partyDetailController.fetchPartyDetails(partyId);
         partyDetailController.fetchParties();
+        controller.fetchCurrentMonthTransactions();
 
         CustomDialog.showSuccess(
           message: 'Payment recorded successfully.',

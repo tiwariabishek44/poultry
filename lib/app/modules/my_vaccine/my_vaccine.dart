@@ -1,4 +1,6 @@
 // my_vaccine_page.dart
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,10 +9,12 @@ import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/my_vaccine/my_vaccine_controller.dart';
 import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_input_field.dart';
+import 'package:poultry/app/widget/date_select_widget.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class MyVaccinePage extends StatelessWidget {
   MyVaccinePage({super.key});
+  final dateSelectorController = Get.put(DateSelectorController());
 
   final controller = Get.put(MyVaccineController());
 
@@ -239,14 +243,12 @@ class MyVaccinePage extends StatelessWidget {
             ),
           ),
           SizedBox(height: 2.h),
-          CustomInputField(
-            hint: 'मिति छान्नुहोस्',
-            controller: controller.dateController,
-            validator: controller.validateDate,
-            prefix: Icon(LucideIcons.calendar, color: AppColors.primaryColor),
-            onTap: () => controller.pickDate(),
-            readOnly: true,
-            label: 'Select Date of Vaccination',
+          // With card and border
+          DateSelectorWidget(
+            controller: dateSelectorController,
+            label: 'Select  Date',
+            showCard: false,
+            hint: 'Choose a date',
           ),
         ],
       ),
@@ -315,11 +317,11 @@ class MyVaccinePage extends StatelessWidget {
                     '${controller.batchesDropDownController.currentFlockCount}',
               ),
               Divider(height: 3.h),
-              _buildDashboardItem(
-                icon: LucideIcons.calendar,
-                label: 'चल्लाको उमेर:',
-                value: '${birdAge['age']} ${birdAge['unit']}',
-              ),
+              // _buildDashboardItem(
+              //   icon: LucideIcons.calendar,
+              //   label: 'चल्लाको उमेर:',
+              //   value: '${birdAge['age']} ${birdAge['unit']}',
+              // ),
             ],
           ),
         );
@@ -401,7 +403,17 @@ class MyVaccinePage extends StatelessWidget {
       width: double.infinity,
       height: 6.h,
       child: ElevatedButton.icon(
-        onPressed: controller.recordVaccination,
+        onPressed: () async {
+          // Focus restriction
+          FocusManager.instance.primaryFocus?.unfocus();
+
+          // Small delay to ensure keyboard is dismissed
+          await Future.delayed(Duration(milliseconds: 100));
+          log('the date is ${dateSelectorController.dateController.text} and year month is ${dateSelectorController.selectedMonthYear.value}');
+          controller.recordVaccination(
+              dateSelectorController.dateController.text,
+              dateSelectorController.selectedMonthYear.value);
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
           shape: RoundedRectangleBorder(

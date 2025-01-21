@@ -40,11 +40,37 @@ class AddPartyPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildPartyTypeSelection(),
+                // _buildPartyTypeSelection(),
+                // SizedBox(height: 3.h),
+                // Obx(() {
+                //   if (controller.selectedPartyType.value == 'customer') {
+                //     return Container(
+                //       child: Text(
+                //         'जसलाई हामी अण्डा बेच्दछौं',
+                //         style: GoogleFonts.notoSansDevanagari(
+                //           fontSize: 17.sp,
+                //           fontWeight: FontWeight.w500,
+                //         ),
+                //       ),
+                //     );
+                //   } else if (controller.selectedPartyType.value == 'supplier') {
+                //     return Container(
+                //       child: Text(
+                //         'जसबाट हामी फार्मको लागि सामान किन्छौं',
+                //         style: GoogleFonts.notoSansDevanagari(
+                //           fontSize: 17.sp,
+                //           fontWeight: FontWeight.w500,
+                //         ),
+                //       ),
+                //     );
+                //   } else {
+                //     return Container();
+                //   }
+                // }),
                 SizedBox(height: 3.h),
                 _buildRequiredInfo(),
                 SizedBox(height: 3.h),
-                _buildOptionalInfo(),
+                // _buildOptionalInfo(),
                 SizedBox(height: 3.h),
                 _buildOpeningBalance(),
                 SizedBox(height: 4.h),
@@ -140,7 +166,7 @@ class AddPartyPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Additional Information *',
+            'General Information *',
             style: GoogleFonts.notoSansDevanagari(
               fontSize: 15.sp,
               fontWeight: FontWeight.w500,
@@ -366,7 +392,15 @@ class AddPartyPage extends StatelessWidget {
       width: double.infinity,
       height: 6.h,
       child: ElevatedButton.icon(
-        onPressed: controller.createParty,
+        onPressed: () async {
+          // Dismiss keyboard first
+          FocusManager.instance.primaryFocus?.unfocus();
+
+          // Small delay to ensure keyboard is dismissed
+          await Future.delayed(Duration(milliseconds: 100));
+
+          controller.createParty();
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
           shape: RoundedRectangleBorder(

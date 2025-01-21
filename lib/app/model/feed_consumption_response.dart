@@ -7,7 +7,7 @@ class FeedConsumptionResponseModel {
 
   // Feed Details
   final double quantityKg; // Amount of feed in kilograms
-  final String feedType; // Type of feed (e.g., 'starter', 'grower', 'layer')
+  final String feedType; //
 
   FeedConsumptionResponseModel({
     this.consumptionId,

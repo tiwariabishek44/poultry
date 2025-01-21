@@ -106,7 +106,7 @@ class CustomDialog {
                 child: Icon(
                   LucideIcons.alertCircle,
                   color: AppColors.error,
-                  size: 24.sp,
+                  size: 22.sp,
                 ),
               ),
               SizedBox(height: 2.h),
@@ -115,7 +115,7 @@ class CustomDialog {
                 style: GoogleFonts.notoSansDevanagari(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: const Color.fromARGB(255, 7, 7, 7),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -123,8 +123,8 @@ class CustomDialog {
               Text(
                 message,
                 style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 15.sp,
-                  color: AppColors.textSecondary,
+                  fontSize: 17.sp,
+                  color: const Color.fromARGB(255, 23, 23, 24),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -244,6 +244,7 @@ class CustomDialog {
     required String message,
     String confirmText = 'Yes',
     String cancelText = 'No',
+    VoidCallback? onConfirm,
   }) async {
     final result = await Get.dialog<bool>(
       Dialog(
@@ -314,7 +315,10 @@ class CustomDialog {
                     child: SizedBox(
                       height: 6.h,
                       child: ElevatedButton(
-                        onPressed: () => Get.back(result: true),
+                        onPressed: () {
+                          Get.back();
+                          if (onConfirm != null) onConfirm();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           shape: RoundedRectangleBorder(

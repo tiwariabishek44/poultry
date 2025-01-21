@@ -67,7 +67,8 @@ class RiceHuskController extends GetxController {
     _showLoadingDialog();
 
     try {
-      final DateTime now = NepaliDateTime.now();
+      final now = NepaliDateTime.now();
+
       final riceHuskData = {
         'batchId': selectedBatchId,
         'adminId': adminId,

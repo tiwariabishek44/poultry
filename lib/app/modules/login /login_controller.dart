@@ -124,7 +124,7 @@ class LoginController extends GetxController {
     super.onClose();
   }
 
-  String? validateEmail(String value) {
+  String? validatePhoneNuber(String value) {
     if (!GetUtils.isPhoneNumber(value)) {
       return "Please enter a valid phone number";
     }

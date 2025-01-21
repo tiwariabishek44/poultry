@@ -16,17 +16,13 @@ class AddBatchPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(
-              'New Batch / नयाँ बैच',
-              style: GoogleFonts.notoSansDevanagari(
-                color: Colors.white,
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        title: Text(
+          'New Batch / नयाँ बैच',
+          style: GoogleFonts.notoSansDevanagari(
+            color: Colors.white,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: AppColors.primaryColor,
         elevation: 0,
@@ -65,47 +61,108 @@ class AddBatchPage extends StatelessWidget {
                     isNumber: true,
                     prefix:
                         Icon(LucideIcons.bird, color: AppColors.primaryColor),
+                    onChanged: (value) {
+                      // Update remaining flock when initial flock changes
+                      controller.updateRemainingFlock();
+                    },
                   ),
                 ],
               ),
               SizedBox(height: 3.h),
 
-              // Date Selection Card
+              // Date Selection Card with Year, Month, Day inputs
               _buildInfoCard(
-                title: 'मिति विवरण',
+                title: 'Batch Start Date / बैच सुरु मिति',
                 icon: LucideIcons.calendar,
                 children: [
-                  CustomInputField(
-                    label: 'सुरु मिति / Starting Date',
-                    hint: 'मिति छान्नुहोस्',
-                    controller: controller.startingDateController,
-                    validator: controller.validateStartingDate,
-                    prefix: Icon(LucideIcons.calendar,
-                        color: AppColors.primaryColor),
-                    suffix: Icon(LucideIcons.chevronsUpDown,
-                        color: AppColors.primaryColor),
-                    onTap: () => controller.pickDate(),
-                    readOnly: true,
+                  Row(
+                    children: [
+                      // Year Input
+                      Expanded(
+                        child: CustomInputField(
+                          label: 'वर्ष / Year',
+                          hint: 'YYYY',
+                          controller: controller.yearController,
+                          validator: controller.validateYear,
+                          keyboardType: TextInputType.number,
+                          isNumber: true,
+                          prefix: Icon(LucideIcons.calendar,
+                              color: AppColors.primaryColor),
+                        ),
+                      ),
+                      SizedBox(width: 2.w),
+                      // Month Input
+                      Expanded(
+                        child: CustomInputField(
+                          label: 'महिना / Month',
+                          hint: 'MM',
+                          controller: controller.monthController,
+                          validator: controller.validateMonth,
+                          keyboardType: TextInputType.number,
+                          isNumber: true,
+                          prefix: Icon(LucideIcons.calendar,
+                              color: AppColors.primaryColor),
+                        ),
+                      ),
+                      SizedBox(width: 2.w),
+                      // Day Input
+                      Expanded(
+                        child: CustomInputField(
+                          label: 'दिन / Day',
+                          hint: 'DD',
+                          controller: controller.dayController,
+                          validator: controller.validateDay,
+                          keyboardType: TextInputType.number,
+                          isNumber: true,
+                          prefix: Icon(LucideIcons.calendar,
+                              color: AppColors.primaryColor),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               SizedBox(height: 3.h),
 
-              // Stage Selection Card
+              // Flock Statistics Card
               _buildInfoCard(
-                title: 'चरण छनौट',
+                title: 'Flock Statistics / चल्ला तथ्याङ्क',
                 icon: LucideIcons.layers,
                 children: [
-                  Text(
-                    'हालको अवस्था / Current Stage',
-                    style: GoogleFonts.notoSansDevanagari(
-                      fontSize: 15.sp,
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomInputField(
+                          label: 'Total Flocks Death / कुल मृत्यु ',
+                          hint: '0',
+                          controller: controller.deathCountController,
+                          validator: controller.validateDeathCount,
+                          keyboardType: TextInputType.number,
+                          isNumber: true,
+                          prefix: Icon(LucideIcons.alertTriangle,
+                              color: AppColors.primaryColor),
+                          onChanged: (value) {
+                            controller.updateRemainingFlock();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 1.h),
-                  _buildStageDropdown(),
+                  SizedBox(height: 2.h),
+                  Row(
+                    children: [
+                      Icon(LucideIcons.bird, color: AppColors.primaryColor),
+                      SizedBox(width: 2.w),
+                      Obx(() => Text(
+                            'Remaining Flock: ${controller.remainingFlock.value}',
+                            style: GoogleFonts.notoSansDevanagari(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.primaryColor,
+                            ),
+                          )),
+                    ],
+                  ),
                 ],
               ),
               SizedBox(height: 5.h),
@@ -116,10 +173,7 @@ class AddBatchPage extends StatelessWidget {
                 height: 6.h,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    // Dismiss keyboard first
                     FocusManager.instance.primaryFocus?.unfocus();
-
-                    // Small delay to ensure keyboard is dismissed
                     await Future.delayed(Duration(milliseconds: 100));
                     controller.createBatch();
                   },
@@ -144,46 +198,6 @@ class AddBatchPage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildStep(String label, int number, bool isActive) {
-    return Column(
-      children: [
-        Container(
-          width: 8.w,
-          height: 8.w,
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.primaryColor : Colors.grey[300],
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              '$number',
-              style: GoogleFonts.notoSansDevanagari(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: 1.h),
-        Text(
-          label,
-          style: GoogleFonts.notoSansDevanagari(
-            fontSize: 12.sp,
-            color: isActive ? AppColors.primaryColor : Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStepConnector(bool isActive) {
-    return Container(
-      width: 10.w,
-      height: 1,
-      color: isActive ? AppColors.primaryColor : Colors.grey[300],
     );
   }
 
@@ -229,64 +243,5 @@ class AddBatchPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildStageDropdown() {
-    return Obx(() => Container(
-          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.dividerColor),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: controller.selectedStage.value,
-              isExpanded: true,
-              icon: Icon(LucideIcons.chevronsUpDown,
-                  color: AppColors.primaryColor),
-              items: controller.stages.map((String stage) {
-                return DropdownMenuItem<String>(
-                  value: stage,
-                  child: Row(
-                    children: [
-                      Icon(
-                        _getStageIcon(stage),
-                        color: AppColors.primaryColor,
-                        size: 16.sp,
-                      ),
-                      SizedBox(width: 2.w),
-                      Text(
-                        stage,
-                        style: GoogleFonts.notoSansDevanagari(
-                          fontSize: 15.sp,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  controller.selectedStage.value = newValue;
-                }
-              },
-            ),
-          ),
-        ));
-  }
-
-  IconData _getStageIcon(String stage) {
-    switch (stage.toLowerCase()) {
-      case 'chick':
-        return LucideIcons.egg;
-      case 'grower':
-        return LucideIcons.bird;
-      case 'layer':
-        return LucideIcons.bird;
-      default:
-        return LucideIcons.bird;
-    }
   }
 }

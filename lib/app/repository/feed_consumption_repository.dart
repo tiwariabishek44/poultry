@@ -54,4 +54,20 @@ class FeedConsumptionRepository {
       return ApiResponse.error("Failed to fetch feed consumption: $e");
     }
   }
+
+  Stream<List<FeedConsumptionResponseModel>> streamFeedConsumptionByYearMonth(
+      String adminId, String yearMonth) {
+    return _firebaseClient
+        .streamCollection(
+          collectionPath: FirebasePath.feedConsumption,
+          queryBuilder: (query) => query
+              .where('adminId', isEqualTo: adminId)
+              .where('yearMonth', isEqualTo: yearMonth),
+        )
+        .map((snapshot) => snapshot.docs
+            .map((doc) => FeedConsumptionResponseModel.fromJson(
+                doc.data() as Map<String, dynamic>,
+                consumptionId: doc.id))
+            .toList());
+  }
 }
