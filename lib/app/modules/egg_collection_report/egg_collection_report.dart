@@ -3,34 +3,27 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/modules/feed_cocnsumption_record/feed_daily_record.dart';
+import 'package:poultry/app/modules/egg_collection_report/daily_record.dart';
+import 'package:poultry/app/modules/egg_collection_report/egg_collection_reports.dart';
+import 'package:poultry/app/modules/egg_collection_report/summary.dart';
 import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
 import 'package:poultry/app/widget/filter_dialouge.dart';
+import 'package:poultry/app/widget/monthly_report/empty_report_widget.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:intl/intl.dart';
 
-// feed_consumption_record_page.dart (main page)
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:intl/intl.dart';
-import 'feed_consumption_summary.dart';
-
-class FeedConsumptionRecordPage extends StatefulWidget {
-  const FeedConsumptionRecordPage({super.key});
+class EggCollectionRecordPage extends StatefulWidget {
+  const EggCollectionRecordPage({super.key});
 
   @override
-  State<FeedConsumptionRecordPage> createState() =>
-      _FeedConsumptionRecordPageState();
+  State<EggCollectionRecordPage> createState() =>
+      _EggCollectionRecordPageState();
 }
 
-class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
+class _EggCollectionRecordPageState extends State<EggCollectionRecordPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   DateTime selectedMonth = DateTime.now();
-  final List<String> feedTypes = ['L0', 'L1', 'L2', 'PL', 'L3'];
-
   final controller = Get.put(MonthlyReportController());
   final filterController = Get.put(FilterController());
 
@@ -44,7 +37,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
   }
 
   void _fetchData() {
-    controller.fetchFeedConsumptions();
+    controller.fetchEggCollections();
   }
 
   @override
@@ -64,25 +57,29 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        title: Text(
+          'Egg Collection Record',
+          style: GoogleFonts.notoSans(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: AppColors.primaryColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Feed Consumption Record',
-              style: GoogleFonts.notoSans(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.picture_as_pdf, color: Colors.white),
+            onPressed: () {
+              Get.to(
+                  () => EggCollectionReportPage(selectedMonth: selectedMonth));
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(48),
           child: Container(
@@ -98,7 +95,18 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
               labelColor: AppColors.primaryColor,
               unselectedLabelColor: Colors.grey,
               indicatorColor: AppColors.primaryColor,
-              indicatorSize: TabBarIndicatorSize.label,
+              indicatorSize:
+                  TabBarIndicatorSize.tab, // Changed from 'label' to 'tab'
+              indicatorWeight:
+                  3.0, // Added to make the indicator bar more prominent
+              labelStyle: GoogleFonts.notoSans(
+                fontSize: 17.sp,
+                fontWeight: FontWeight.w500,
+              ),
+              unselectedLabelStyle: GoogleFonts.notoSans(
+                fontSize: 17.sp,
+                fontWeight: FontWeight.w500,
+              ),
               tabs: [
                 Tab(
                   child: Text(
@@ -111,7 +119,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
                 ),
                 Tab(
                   child: Text(
-                    'Daily Records',
+                    'Daily ',
                     style: GoogleFonts.notoSans(
                       fontSize: 17.sp,
                       fontWeight: FontWeight.w500,
@@ -147,9 +155,9 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
         controller: _tabController,
         children: [
           // Summary Tab
-          FeedConsumptionSummary(),
+          SummaryTab(),
           // Daily Records Tab
-          FeedConsumptionDailyRecords(),
+          EggCollectionDailyRecords(),
         ],
       ),
     );

@@ -135,7 +135,7 @@ class FarmStatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildModernHeader(isSmallScreen),
+          // _buildModernHeader(isSmallScreen),
           const SizedBox(height: 24),
           ActiveBatchesSection(),
         ],

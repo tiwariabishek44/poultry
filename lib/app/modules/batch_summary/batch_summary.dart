@@ -334,13 +334,13 @@ class BatchSummaryPage extends StatelessWidget {
               ),
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
+                  backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                 ),
                 onPressed: onAnalysisPressed,
-                child: Text(
+                child: const Text(
                   'Analysis',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.primaryColor,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

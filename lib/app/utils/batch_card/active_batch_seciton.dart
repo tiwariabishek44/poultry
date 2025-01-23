@@ -134,7 +134,7 @@ class ActiveBatchesSection extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Get.to(() => BatchManagementPage());
+        Get.to(() => BatchManagementPage(batch: batch));
       },
       child: Container(
         margin: EdgeInsets.only(right: isSmallScreen ? 8 : 16),

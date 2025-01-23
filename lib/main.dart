@@ -99,6 +99,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:poultry/app/constant/app_color.dart';
+import 'package:poultry/app/modules/egg_collection_report/egg_collection_reports.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/splash_screen/splash_screen.dart';
 import 'package:poultry/app/modules/splash_screen/splash_scren_controller.dart';
@@ -107,6 +108,7 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
 
   // Only initialize FlutterDownloader for mobile platforms
   if (!kIsWeb) {

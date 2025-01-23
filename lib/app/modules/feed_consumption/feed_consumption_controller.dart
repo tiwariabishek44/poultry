@@ -2,12 +2,12 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
+import 'package:poultry/app/modules/item_rates/item_rates_controller.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/repository/feed_consumption_repository.dart';
 import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
-import 'package:poultry/app/widget/feed_type_selector.dart';
 import 'package:poultry/app/widget/loading_State.dart';
 
 class FeedConsumptionController extends GetxController {
@@ -16,7 +16,7 @@ class FeedConsumptionController extends GetxController {
   final _feedConsumptionRepository = FeedConsumptionRepository();
   final _loginController = Get.find<LoginController>();
   final batchesDropDownController = Get.put(BatchesDropDownController());
-  final feedTypeSelectorController = Get.put(FeedTypeSelectorController());
+  final feedTypeSelectorController = Get.put(FeedRateController());
 
   // Loading state
   final isLoading = false.obs;

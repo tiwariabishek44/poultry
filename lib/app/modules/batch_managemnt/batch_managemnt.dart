@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:poultry/app/constant/app_color.dart';
+import 'package:poultry/app/model/batch_response_model.dart';
 import 'package:poultry/app/modules/batch_summary/batch_summary.dart';
-import 'package:poultry/app/modules/monthly_report/monthly_report.dart';
+import 'package:poultry/app/modules/egg_collection_report/egg_collection_report.dart';
+import 'package:poultry/app/modules/feed_cocnsumption_record/feed_consumption_record.dart';
+import 'package:poultry/app/modules/motality_record/motality_record.dart';
+import 'package:poultry/app/modules/rice_husk_record/rice_husk_record.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class BatchManagementPage extends StatelessWidget {
-  const BatchManagementPage({super.key});
+  final BatchResponseModel batch;
+  const BatchManagementPage({super.key, required this.batch});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +52,7 @@ class BatchManagementPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Batch #A123',
+                    'Batch Name: ${batch.batchName}',
                     style: GoogleFonts.notoSansDevanagari(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
@@ -55,7 +60,7 @@ class BatchManagementPage extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Age: 45 days',
+                    'Status : ${batch.isActive ? 'Active' : 'Inactive'}',
                     style: GoogleFonts.notoSansDevanagari(
                       fontSize: 14.sp,
                       color: Colors.grey[600],
@@ -77,25 +82,33 @@ class BatchManagementPage extends StatelessWidget {
             _buildManagementTile(
                 title: 'Egg Collection Record',
                 nepaliTitle: 'अण्डा संकलन रेकर्ड',
-                onTap: () {}),
+                onTap: () {
+                  Get.to(
+                    () => const EggCollectionRecordPage(),
+                    arguments: {'batchId': batch.batchId},
+                  );
+                }),
 
             _buildManagementTile(
                 title: 'Feed Consumption Record',
                 nepaliTitle: 'दाना खपत रेकर्ड',
-                onTap: () {}),
+                onTap: () {
+                  Get.to(() => FeedConsumptionRecordPage());
+                }),
 
             _buildManagementTile(
-                title: 'भूस Record ', nepaliTitle: ' भूस रेकर्ड', onTap: () {}),
-
-            _buildManagementTile(
-                title: 'Vaccination Record',
-                nepaliTitle: 'खोप रेकर्ड',
-                onTap: () {}),
+                title: 'भूस Record ',
+                nepaliTitle: ' भूस रेकर्ड',
+                onTap: () {
+                  Get.to(() => RiceHuskRecordPage());
+                }),
 
             _buildManagementTile(
                 title: 'Mortality Record',
                 nepaliTitle: 'मृत्यु दर',
-                onTap: () {}),
+                onTap: () {
+                  Get.to(() => MortalityRecordPage());
+                }),
           ],
         ),
       ),

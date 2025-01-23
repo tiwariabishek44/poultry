@@ -54,6 +54,8 @@ dependencies:
   printing: ^5.13.4
   permission_handler: ^11.3.1
 
+  flutter_local_notifications: ^16.3.0
+
   confetti: ^0.8.0
   rxdart: ^0.28.0
   lucide_icons: ^0.257.0

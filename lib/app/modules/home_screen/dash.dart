@@ -19,6 +19,53 @@ class PoultryDashboard extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark, // Set status bar color to dark
         child: Scaffold(
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person,
+                            size: 35, color: AppColors.primaryColor),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'Farm Dashboard',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.dashboard),
+                  title: Text('Dashboard'),
+                  onTap: () => Get.back(),
+                ),
+                ListTile(
+                  leading: Icon(Icons.calendar_today),
+                  title: Text('My Calendar'),
+                  onTap: () => Get.to(() => MyCalendarView()),
+                ),
+                ListTile(
+                  leading: Icon(Icons.bar_chart),
+                  title: Text('Monthly Report'),
+                  onTap: () => Get.to(() => MonthlyReportPage()),
+                ),
+              ],
+            ),
+          ),
           body: SafeArea(
             child: Stack(
               children: [
@@ -138,7 +185,7 @@ class PoultryDashboard extends StatelessWidget {
               );
             },
           ),
-          // floating action button circular eget
+          // // floating action button circular eget
 
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         ));

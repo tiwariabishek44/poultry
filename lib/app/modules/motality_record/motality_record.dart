@@ -3,34 +3,25 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/modules/feed_cocnsumption_record/feed_daily_record.dart';
 import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
+import 'package:poultry/app/modules/motality_record/daily_motality.dart';
+import 'package:poultry/app/modules/motality_record/motality_summary.dart';
 import 'package:poultry/app/widget/filter_dialouge.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:intl/intl.dart';
 
-// feed_consumption_record_page.dart (main page)
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:intl/intl.dart';
-import 'feed_consumption_summary.dart';
-
-class FeedConsumptionRecordPage extends StatefulWidget {
-  const FeedConsumptionRecordPage({super.key});
+// Main Page Widget with Tabs
+class MortalityRecordPage extends StatefulWidget {
+  const MortalityRecordPage({super.key});
 
   @override
-  State<FeedConsumptionRecordPage> createState() =>
-      _FeedConsumptionRecordPageState();
+  State<MortalityRecordPage> createState() => _MortalityRecordPageState();
 }
 
-class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
+class _MortalityRecordPageState extends State<MortalityRecordPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   DateTime selectedMonth = DateTime.now();
-  final List<String> feedTypes = ['L0', 'L1', 'L2', 'PL', 'L3'];
-
   final controller = Get.put(MonthlyReportController());
   final filterController = Get.put(FilterController());
 
@@ -44,7 +35,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
   }
 
   void _fetchData() {
-    controller.fetchFeedConsumptions();
+    controller.fetchMortalities();
   }
 
   @override
@@ -55,7 +46,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
 
   void _onDateSelected(String date) {
     setState(() {
-      // Update the selected date
+      // Update selected date
     });
   }
 
@@ -70,18 +61,13 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Feed Consumption Record',
-              style: GoogleFonts.notoSans(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-          ],
+        title: Text(
+          'Mortality Records',
+          style: GoogleFonts.notoSans(
+            fontSize: 18.sp,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(48),
@@ -123,33 +109,24 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
           ),
         ),
       ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // Replace your existing filter FloatingActionButton with this:
-          FloatingActionButton(
-            onPressed: () {
-              Get.bottomSheet(
-                FilterBottomSheet(
-                  onDateSelected: _onDateSelected,
-                  showBatch: false,
-                ),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-              );
-            },
-            child: Icon(LucideIcons.filter),
-            heroTag: null,
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Get.bottomSheet(
+            FilterBottomSheet(
+              onDateSelected: _onDateSelected,
+              showBatch: false,
+            ),
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+          );
+        },
+        child: Icon(LucideIcons.filter),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Summary Tab
-          FeedConsumptionSummary(),
-          // Daily Records Tab
-          FeedConsumptionDailyRecords(),
+          MortalitySummaryTab(),
+          MortalityDailyRecords(),
         ],
       ),
     );

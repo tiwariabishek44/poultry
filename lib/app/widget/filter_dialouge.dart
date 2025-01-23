@@ -1,10 +1,6 @@
-// filter dialouge.dart
-
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
@@ -23,10 +19,9 @@ class FilterController extends GetxController {
   final batches = <BatchResponseModel>[].obs;
   final selectedBatch = Rxn<BatchResponseModel>();
   final selectedDate = NepaliDateTime.now().obs;
-  final finalDate = ''.obs; // Final date in "YYYY-MM" format
+  final finalDate = ''.obs;
   final isLoading = false.obs;
-  final isAllBatchesSelected =
-      true.obs; // New variable to track "All" selection
+  final isAllBatchesSelected = true.obs;
   final selectedBatchName = ''.obs;
   final selectedBatchId = ''.obs;
 
@@ -34,10 +29,8 @@ class FilterController extends GetxController {
   void onInit() {
     super.onInit();
     fetchBatches();
-    // Initialize with current Nepali month
     selectedDate.value = NepaliDateTime.now();
     updateFinalDate();
-    log(" this is he final date ${finalDate.value}");
   }
 
   Future<void> fetchBatches() async {
@@ -87,11 +80,15 @@ class FilterController extends GetxController {
 
 class FilterBottomSheet extends StatelessWidget {
   final Function(String) onDateSelected;
+  final bool showBatch;
+  final bool showYear;
   final FilterController controller = Get.put(FilterController());
 
   FilterBottomSheet({
     Key? key,
     required this.onDateSelected,
+    this.showBatch = true,
+    this.showYear = true,
   }) : super(key: key);
 
   final nepaliMonths = [
@@ -120,7 +117,6 @@ class FilterBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle bar
           Container(
             margin: EdgeInsets.only(top: 2.h),
             width: 15.w,
@@ -130,8 +126,6 @@ class FilterBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-
-          // Header
           Padding(
             padding: EdgeInsets.all(4.w),
             child: Row(
@@ -152,77 +146,138 @@ class FilterBottomSheet extends StatelessWidget {
               ],
             ),
           ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 4.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Batch Selection
-                  Text(
-                    'Select Batch',
-                    style: GoogleFonts.notoSansDevanagari(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
+                  if (showBatch) ...[
+                    Text(
+                      'Select Batch',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Obx(() {
-                    if (controller.isLoading.value) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-
-                    final activeBatches = controller.batches
-                        .where((batch) => batch.isActive)
-                        .toList();
-
-                    return Wrap(
-                      spacing: 2.w,
-                      runSpacing: 1.h,
-                      children: [
-                        ChoiceChip(
-                          label: Text('All'),
-                          selected: controller.isAllBatchesSelected.value,
-                          onSelected: (selected) {
-                            log(" this is the selected value $selected");
-                            if (selected) controller.selectAllBatches();
-                          },
-                          selectedColor: AppColors.primaryColor,
-                          backgroundColor: Colors.grey[200],
-                          labelStyle: GoogleFonts.notoSansDevanagari(
-                            color: controller.isAllBatchesSelected.value
-                                ? Colors.white
-                                : AppColors.textPrimary,
-                          ),
-                        ),
-                        ...activeBatches.map((batch) {
-                          final isSelected =
-                              controller.selectedBatch.value?.batchId ==
-                                  batch.batchId;
-                          return ChoiceChip(
-                            label: Text(batch.batchName),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) controller.selectBatch(batch);
+                    SizedBox(height: 2.h),
+                    Obx(() {
+                      if (controller.isLoading.value) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      final activeBatches = controller.batches
+                          .where((batch) => batch.isActive)
+                          .toList();
+                      return Wrap(
+                        spacing: 5.w,
+                        runSpacing: 2.h,
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              controller.selectAllBatches();
                             },
-                            selectedColor: AppColors.primaryColor,
-                            backgroundColor: Colors.grey[200],
-                            labelStyle: GoogleFonts.notoSansDevanagari(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textPrimary,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 1.h, horizontal: 3.w),
+                              decoration: BoxDecoration(
+                                color: controller.isAllBatchesSelected.value
+                                    ? AppColors.primaryColor
+                                    : Colors.grey[200],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'All',
+                                style: GoogleFonts.notoSansDevanagari(
+                                  color: controller.isAllBatchesSelected.value
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
                             ),
-                          );
-                        }).toList(),
-                      ],
-                    );
-                  }),
-
-                  Divider(height: 4.h),
-
-                  // Month Selection
+                          ),
+                          ...activeBatches.map((batch) {
+                            final isSelected =
+                                controller.selectedBatch.value?.batchId ==
+                                    batch.batchId;
+                            return GestureDetector(
+                              onTap: () {
+                                controller.selectBatch(batch);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 1.h, horizontal: 3.w),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primaryColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  batch.batchName,
+                                  style: GoogleFonts.notoSansDevanagari(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      );
+                    }),
+                    Divider(height: 4.h),
+                  ],
+                  if (showYear) ...[
+                    Text(
+                      'Select Year',
+                      style: GoogleFonts.notoSansDevanagari(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Obx(() => Wrap(
+                          spacing: 5.w,
+                          runSpacing: 2.h,
+                          children: List.generate(12, (index) {
+                            final year = 2078 + index;
+                            final isSelected =
+                                controller.selectedDate.value.year == year;
+                            return GestureDetector(
+                              onTap: () {
+                                controller.selectedDate.value = NepaliDateTime(
+                                  year,
+                                  controller.selectedDate.value.month,
+                                  1,
+                                );
+                                controller.updateFinalDate();
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 1.h, horizontal: 3.w),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primaryColor
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  year.toString(),
+                                  style: GoogleFonts.notoSansDevanagari(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        )),
+                    Divider(height: 4.h),
+                  ],
                   Text(
                     'Select Month',
                     style: GoogleFonts.notoSansDevanagari(
@@ -233,30 +288,37 @@ class FilterBottomSheet extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Obx(() => Wrap(
-                        spacing: 2.w,
-                        runSpacing: 1.h,
+                        spacing: 5.w,
+                        runSpacing: 2.h,
                         children: List.generate(nepaliMonths.length, (index) {
                           final isSelected =
                               controller.selectedDate.value.month == index + 1;
-                          return ChoiceChip(
-                            label: Text(nepaliMonths[index]),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) {
-                                controller.selectedDate.value = NepaliDateTime(
-                                  controller.selectedDate.value.year,
-                                  index + 1,
-                                  1,
-                                );
-                                controller.updateFinalDate();
-                              }
+                          return GestureDetector(
+                            onTap: () {
+                              controller.selectedDate.value = NepaliDateTime(
+                                controller.selectedDate.value.year,
+                                index + 1,
+                                1,
+                              );
+                              controller.updateFinalDate();
                             },
-                            selectedColor: AppColors.primaryColor,
-                            backgroundColor: Colors.grey[200],
-                            labelStyle: GoogleFonts.notoSansDevanagari(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textPrimary,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 1.h, horizontal: 3.w),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primaryColor
+                                    : Colors.grey[200],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                nepaliMonths[index],
+                                style: GoogleFonts.notoSansDevanagari(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                ),
+                              ),
                             ),
                           );
                         }),
@@ -265,8 +327,6 @@ class FilterBottomSheet extends StatelessWidget {
               ),
             ),
           ),
-
-          // Bottom Buttons
           Container(
             padding: EdgeInsets.all(4.w),
             decoration: BoxDecoration(
@@ -307,7 +367,8 @@ class FilterBottomSheet extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      if (!controller.isAllBatchesSelected.value &&
+                      if (showBatch &&
+                          !controller.isAllBatchesSelected.value &&
                           controller.selectedBatch.value == null) {
                         Get.snackbar(
                           'Error',

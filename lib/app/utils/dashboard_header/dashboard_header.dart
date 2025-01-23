@@ -119,6 +119,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        IconButton(
+          icon: Icon(Icons.menu, color: Colors.black87),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,29 +170,29 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           ),
         ),
         // make the contianer and put the logout icons
-        GestureDetector(
-          onTap: () {
-            CustomDialog.showConfirmation(
-                title: 'Logout',
-                message: 'Are you sure you want to logout?',
-                confirmText: 'Logout',
-                onConfirm: () {
-                  Get.find<LoginController>().logout();
-                });
-          },
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.logout,
-              color: Colors.blue,
-              size: 24,
-            ),
-          ),
-        ),
+        // GestureDetector(
+        //   onTap: () {
+        //     CustomDialog.showConfirmation(
+        //         title: 'Logout',
+        //         message: 'Are you sure you want to logout?',
+        //         confirmText: 'Logout',
+        //         onConfirm: () {
+        //           Get.find<LoginController>().logout();
+        //         });
+        //   },
+        //   child: Container(
+        //     padding: const EdgeInsets.all(8),
+        //     decoration: BoxDecoration(
+        //       color: Colors.blue.shade50,
+        //       shape: BoxShape.circle,
+        //     ),
+        //     child: const Icon(
+        //       Icons.logout,
+        //       color: Colors.blue,
+        //       size: 24,
+        //     ),
+        //   ),
+        // ),
         // _buildWeatherWidget(),
       ],
     );

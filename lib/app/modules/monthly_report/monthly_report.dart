@@ -104,6 +104,7 @@ class _MonthlyReportPageState extends State<MonthlyReportPage> {
               Get.bottomSheet(
                 FilterBottomSheet(
                   onDateSelected: _onDateSelected,
+                  showYear: false,
                 ),
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,

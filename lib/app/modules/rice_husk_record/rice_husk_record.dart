@@ -1,35 +1,27 @@
+// rice_husk_record_page.dart (main page)
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/modules/feed_cocnsumption_record/feed_daily_record.dart';
 import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
+import 'package:poultry/app/modules/rice_husk_record/daily_husk_record.dart';
+import 'package:poultry/app/modules/rice_husk_record/husk_summary.dart';
 import 'package:poultry/app/widget/filter_dialouge.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:intl/intl.dart';
 
-// feed_consumption_record_page.dart (main page)
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:intl/intl.dart';
-import 'feed_consumption_summary.dart';
-
-class FeedConsumptionRecordPage extends StatefulWidget {
-  const FeedConsumptionRecordPage({super.key});
+class RiceHuskRecordPage extends StatefulWidget {
+  const RiceHuskRecordPage({super.key});
 
   @override
-  State<FeedConsumptionRecordPage> createState() =>
-      _FeedConsumptionRecordPageState();
+  State<RiceHuskRecordPage> createState() => _RiceHuskRecordPageState();
 }
 
-class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
+class _RiceHuskRecordPageState extends State<RiceHuskRecordPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   DateTime selectedMonth = DateTime.now();
-  final List<String> feedTypes = ['L0', 'L1', 'L2', 'PL', 'L3'];
 
   final controller = Get.put(MonthlyReportController());
   final filterController = Get.put(FilterController());
@@ -44,19 +36,19 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
   }
 
   void _fetchData() {
-    controller.fetchFeedConsumptions();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+    controller.fetchRiceHusks();
   }
 
   void _onDateSelected(String date) {
     setState(() {
       // Update the selected date
     });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -74,13 +66,14 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Feed Consumption Record',
+              'Rice Husk Record',
               style: GoogleFonts.notoSans(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
             ),
+            SizedBox(height: 4),
           ],
         ),
         bottom: PreferredSize(
@@ -105,7 +98,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
                     'Summary',
                     style: GoogleFonts.notoSans(
                       fontSize: 17.sp,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -114,7 +107,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
                     'Daily Records',
                     style: GoogleFonts.notoSans(
                       fontSize: 17.sp,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -147,9 +140,9 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
         controller: _tabController,
         children: [
           // Summary Tab
-          FeedConsumptionSummary(),
+          RiceHuskSummary(),
           // Daily Records Tab
-          FeedConsumptionDailyRecords(),
+          RiceHuskDailyRecords(),
         ],
       ),
     );

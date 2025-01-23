@@ -6,7 +6,7 @@ import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/feed_consumption/feed_consumption_controller.dart';
 import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_input_field.dart';
-import 'package:poultry/app/widget/feed_type_selector.dart';
+import 'package:poultry/app/widget/feed_selection.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class FeedConsumptionPage extends StatefulWidget {
@@ -69,9 +69,7 @@ class _FeedConsumptionPageState extends State<FeedConsumptionPage> {
 
                 // Feed Type Selection
 
-                FeedTypeSelector(),
-                SizedBox(height: 3.h),
-
+                FeedSelectionGrid(),
                 SizedBox(height: 3.h),
 
                 // Quantity Input

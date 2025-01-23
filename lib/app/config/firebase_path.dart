@@ -29,4 +29,6 @@ class FirebasePath {
   static const String purchases = 'purchases'; // Added purchases path
   // stockItems
   static const String stockItems = 'stock_items'; // Added stock items path
+// itemrates
+  static String itemRates = 'item_rates'; // Added item rates path
 }

@@ -6,6 +6,7 @@ import 'package:poultry/app/modules/add_batch/add_batch.dart';
 import 'package:poultry/app/modules/egg_collection_add/egg_colleciton.dart';
 import 'package:poultry/app/modules/feed_consumption/feed_consumption.dart';
 import 'package:poultry/app/modules/flock_death/flock_death.dart';
+import 'package:poultry/app/modules/item_rates/item_rate_page.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/my_vaccine/vaccine_schedule.dart';
 import 'package:poultry/app/modules/rice_husk_spray/rice_husk_spray.dart';
@@ -73,6 +74,8 @@ class HomeScreen extends StatelessWidget {
                     () => Get.to(() => FlockDeathPage())),
                 ButtonData('भुस Record', 'assets/nusk.jpeg',
                     () => Get.to(() => RiceHuskPage())),
+                ButtonData('Stock Items', 'assets/layers.jpeg',
+                    () => Get.to(() => FeedRatePage())),
               ]),
             ],
           ),
