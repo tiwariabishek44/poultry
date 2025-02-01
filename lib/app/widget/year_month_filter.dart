@@ -1,3 +1,7 @@
+// nepali_date_controller.dart
+import 'package:get/get.dart';
+import 'package:nepali_date_picker/nepali_date_picker.dart';
+// nepali_month_year_picker.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +16,11 @@ class NepaliDateController extends GetxController {
   final selectedMonthName = ''.obs;
   final yearMonthString = ''.obs;
 
-  // List of years and months
+  // Temporary selection variables
+  final tempSelectedMonth = NepaliDateTime.now().month.obs;
+  final tempSelectedYear = NepaliDateTime.now().year.obs;
+
+  // List of months
   final nepaliMonths = [
     'Baishakh',
     'Jestha',
@@ -39,6 +47,11 @@ class NepaliDateController extends GetxController {
     updateSelection(NepaliDateTime.now().year, NepaliDateTime.now().month);
   }
 
+  void resetTempSelection() {
+    tempSelectedMonth.value = selectedMonth.value;
+    tempSelectedYear.value = selectedYear.value;
+  }
+
   void updateSelection(int year, int month) {
     selectedYear.value = year;
     selectedMonth.value = month;
@@ -51,7 +64,6 @@ class NepaliDateController extends GetxController {
   }
 }
 
-// widgets/nepali_month_year_picker.dart
 class NepaliMonthYearPickers extends StatelessWidget {
   final Function(String) onDateSelected;
   final NepaliDateTime? initialDate;
@@ -65,8 +77,8 @@ class NepaliMonthYearPickers extends StatelessWidget {
   final controller = Get.put(NepaliDateController());
 
   void _showMonthYearBottomSheet() {
-    int tempMonth = controller.selectedMonth.value;
-    int tempYear = controller.selectedYear.value;
+    // Reset temp values when opening sheet
+    controller.resetTempSelection();
 
     Get.bottomSheet(
       Container(
@@ -108,26 +120,29 @@ class NepaliMonthYearPickers extends StatelessWidget {
               ),
             ),
             SizedBox(height: 1.h),
-            Wrap(
-              spacing: 2.w,
-              runSpacing: 1.h,
-              children: List.generate(controller.nepaliMonths.length, (index) {
-                return ChoiceChip(
-                  label: Text(controller.nepaliMonths[index]),
-                  selected: tempMonth == index + 1,
-                  onSelected: (bool selected) {
-                    if (selected) tempMonth = index + 1;
-                  },
-                  selectedColor: AppColors.primaryColor,
-                  backgroundColor: AppColors.surfaceColor,
-                  labelStyle: GoogleFonts.notoSansDevanagari(
-                    color: tempMonth == index + 1
-                        ? Colors.white
-                        : AppColors.textPrimary,
-                  ),
-                );
-              }),
-            ),
+            Obx(() => Wrap(
+                  spacing: 2.w,
+                  runSpacing: 1.h,
+                  children:
+                      List.generate(controller.nepaliMonths.length, (index) {
+                    return ChoiceChip(
+                      label: Text(controller.nepaliMonths[index]),
+                      selected: controller.tempSelectedMonth.value == index + 1,
+                      onSelected: (bool selected) {
+                        if (selected) {
+                          controller.tempSelectedMonth.value = index + 1;
+                        }
+                      },
+                      selectedColor: AppColors.primaryColor,
+                      backgroundColor: AppColors.surfaceColor,
+                      labelStyle: GoogleFonts.notoSansDevanagari(
+                        color: controller.tempSelectedMonth.value == index + 1
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                      ),
+                    );
+                  }),
+                )),
 
             SizedBox(height: 3.h),
 
@@ -140,25 +155,28 @@ class NepaliMonthYearPickers extends StatelessWidget {
               ),
             ),
             SizedBox(height: 1.h),
-            Wrap(
-              spacing: 2.w,
-              runSpacing: 1.h,
-              children: controller.nepaliYears.map((year) {
-                return ChoiceChip(
-                  label: Text(year.toString()),
-                  selected: tempYear == year,
-                  onSelected: (bool selected) {
-                    if (selected) tempYear = year;
-                  },
-                  selectedColor: AppColors.primaryColor,
-                  backgroundColor: AppColors.surfaceColor,
-                  labelStyle: GoogleFonts.notoSansDevanagari(
-                    color:
-                        tempYear == year ? Colors.white : AppColors.textPrimary,
-                  ),
-                );
-              }).toList(),
-            ),
+            Obx(() => Wrap(
+                  spacing: 2.w,
+                  runSpacing: 1.h,
+                  children: controller.nepaliYears.map((year) {
+                    return ChoiceChip(
+                      label: Text(year.toString()),
+                      selected: controller.tempSelectedYear.value == year,
+                      onSelected: (bool selected) {
+                        if (selected) {
+                          controller.tempSelectedYear.value = year;
+                        }
+                      },
+                      selectedColor: AppColors.primaryColor,
+                      backgroundColor: AppColors.surfaceColor,
+                      labelStyle: GoogleFonts.notoSansDevanagari(
+                        color: controller.tempSelectedYear.value == year
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                      ),
+                    );
+                  }).toList(),
+                )),
 
             Spacer(),
 
@@ -168,7 +186,8 @@ class NepaliMonthYearPickers extends StatelessWidget {
               height: 6.h,
               child: ElevatedButton(
                 onPressed: () {
-                  controller.updateSelection(tempYear, tempMonth);
+                  controller.updateSelection(controller.tempSelectedYear.value,
+                      controller.tempSelectedMonth.value);
                   onDateSelected(controller.yearMonthString.value);
                   Get.back();
                 },
@@ -229,5 +248,19 @@ class NepaliMonthYearPickers extends StatelessWidget {
             ),
           ),
         ));
+  }
+}
+
+// Example usage:
+class YourScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: NepaliMonthYearPickers(
+        onDateSelected: (String date) {
+          print('Selected date: $date'); // Will print in format YYYY-MM
+        },
+      ),
+    );
   }
 }

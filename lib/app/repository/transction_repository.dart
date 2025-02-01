@@ -123,14 +123,13 @@ class TransactionRepository {
     required String actionId,
     required String date,
     required String yearMonth,
-    required bool isSale, // true for sale, false for purchase
+    required String transactionType, // true for sale, false for purchase
     String? notes,
     String? bankDetails,
     required String remarks,
     required double unpaidAmount,
   }) async {
     try {
-      final transactionType = isSale ? 'SALE' : 'PURCHASE';
       log("Creating $transactionType transaction for party: $partyId");
 
       final docRef = await _firebaseClient.getDocumentReference(
@@ -189,10 +188,62 @@ class TransactionRepository {
             TransactionResponseModel.fromJson(json, transactionId: docRef.id),
       );
     } catch (e) {
-      final transactionType = isSale ? 'sale' : 'purchase';
       log("Error creating $transactionType transaction: $e");
       return ApiResponse.error(
           "Failed to create $transactionType transaction: $e");
+    }
+  }
+
+  Future<ApiResponse<TransactionResponseModel>> createExpenseTransaction({
+    required String adminId,
+    required double amount,
+    required String paymentMethod,
+    required String transactionUnder,
+    required String actionId,
+    required String date,
+    required String yearMonth,
+    String? notes,
+    required String remarks,
+    required String category,
+  }) async {
+    try {
+      log("Creating expense transaction");
+
+      final docRef = await _firebaseClient.getDocumentReference(
+        collectionPath: FirebasePath.transactions,
+      );
+
+      // Prepare transaction data
+      final transactionData = TransactionResponseModel(
+        transactionId: docRef.id,
+        partyId: '', // Empty for expenses
+        actionId: actionId,
+        adminId: adminId,
+        yearMonth: yearMonth,
+        transactionDate: date,
+        transactionType: 'EXPENSE',
+        totalAmount: amount,
+        paymentMethod: paymentMethod,
+        bankDetails: '',
+        balance: 0, // No balance for expenses
+        notes: '',
+        status: 'PAID', // Expenses are always paid
+        transactionUnder: '',
+        remarks: remarks,
+        unpaidAmount: 0, // No unpaid amount for expenses
+        transactionTime: _getCurrentTime(),
+      ).toJson();
+
+      return await _firebaseClient.postDocument<TransactionResponseModel>(
+        collectionPath: FirebasePath.transactions,
+        documentId: docRef.id,
+        data: transactionData,
+        responseType: (json) =>
+            TransactionResponseModel.fromJson(json, transactionId: docRef.id),
+      );
+    } catch (e) {
+      log("Error creating expense transaction: $e");
+      return ApiResponse.error("Failed to create expense transaction: $e");
     }
   }
 }

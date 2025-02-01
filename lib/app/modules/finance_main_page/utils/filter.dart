@@ -29,7 +29,13 @@ class FinanceFilterBar extends StatelessWidget {
           children: [
             _buildFilterChip('All', 'all'),
             SizedBox(width: 12),
+            _buildFilterChip('Customers', 'customer'),
+            SizedBox(width: 12),
+            _buildFilterChip('Suppliers', 'supplier'),
+            SizedBox(width: 12),
             _buildFilterChip('To Receive', 'to_receive'),
+            SizedBox(width: 12),
+            _buildFilterChip('To Pay', 'to_pay'),
             SizedBox(width: 12),
             _buildFilterChip('Settled', 'settled'),
           ],
@@ -46,16 +52,22 @@ class FinanceFilterBar extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryColor : Colors.white,
+            color: isSelected
+                ? AppColors.primaryColor
+                : Color.fromARGB(255, 255, 255, 255),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? AppColors.primaryColor : Colors.grey[300]!,
+              color: isSelected
+                  ? AppColors.primaryColor
+                  : const Color.fromARGB(255, 149, 149, 149)!,
             ),
           ),
           child: Text(
             label,
             style: GoogleFonts.notoSans(
-              color: isSelected ? Colors.white : Colors.grey[600],
+              color: isSelected
+                  ? Colors.white
+                  : const Color.fromARGB(255, 33, 33, 33),
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),

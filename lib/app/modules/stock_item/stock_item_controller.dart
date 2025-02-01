@@ -43,22 +43,19 @@ class StockItemController extends GetxController {
     }
   }
 
-  void _showLoadingDialog() {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: const LoadingState(text: 'Items Saving...'),
-      ),
-      barrierDismissible: false,
-    );
-  }
-
   // Create new stock item
   Future<void> createStockItem({
     required String itemName,
     required String category,
   }) async {
+    Get.dialog(
+      const Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: LoadingState(text: 'Loading ...'),
+      ),
+      barrierDismissible: false,
+    );
     try {
       final adminId = _loginController.adminUid;
       if (adminId == null) {
@@ -67,12 +64,11 @@ class StockItemController extends GetxController {
         );
         return;
       }
-      _showLoadingDialog();
 
       final itemData = {
         'adminId': adminId,
         'itemName': itemName,
-        'category': category,
+        'category': '',
       };
 
       final response = await _stockItemRepository.createStockItem(itemData);
@@ -82,7 +78,6 @@ class StockItemController extends GetxController {
         CustomDialog.showSuccess(
           message: 'Stock item added successfully',
           onConfirm: () {
-            Get.back();
             fetchStockItems(); // Refresh the list
           },
         );
@@ -128,23 +123,26 @@ class StockItemController extends GetxController {
     }
   }
 
-  List<StockItemResponseModel> getItemsByCategory(String category) {
-    return _allStockItems
-        .where((item) => item.category.toLowerCase() == category.toLowerCase())
-        .toList();
-  }
-
   // Delete stock item
   Future<void> deleteStockItem(String itemId) async {
     try {
+      Get.dialog(
+        const Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const LoadingState(text: 'Deleting ...'),
+        ),
+        barrierDismissible: false,
+      );
       final response = await _stockItemRepository.deleteStockItem(itemId);
 
       if (response.status == ApiStatus.SUCCESS) {
+        fetchStockItems(); // Refresh the list
+        Get.back(); // Close the loading dialog
+
         CustomDialog.showSuccess(
           message: 'Stock item deleted successfully',
-          onConfirm: () {
-            fetchStockItems(); // Refresh the list
-          },
+          onConfirm: () {},
         );
       } else {
         CustomDialog.showError(

@@ -15,334 +15,463 @@ class AddSaleItemSPage extends StatefulWidget {
 class _AddSaleItemSPageState extends State<AddSaleItemSPage> {
   final formKey = GlobalKey<FormState>();
   final itemNameController = TextEditingController();
-  final cratesController = TextEditingController();
-  final remainingController = TextEditingController();
-  final rateController = TextEditingController();
   final quantityController = TextEditingController();
+  final weightController = TextEditingController();
+  final rateController = TextEditingController();
 
-  var selectedCategory = 'egg';
-  String selectedEggType = 'medium';
+  var selectedCategory = 'hen';
   double totalAmount = 0.0;
 
-  final categories = [
-    'egg',
-  ];
-  // final categories = ['egg', 'hen', 'manure'];
-
-  final eggTypes = ['small', 'medium', 'large', 'large_plus', 'crack'];
+  final categories = ['hen', 'manure'];
   final numberFormat = NumberFormat("#,##,###");
 
   @override
   void initState() {
     super.initState();
     updateItemName();
-    cratesController.addListener(calculateQuantityAndTotal);
-    remainingController.addListener(calculateQuantityAndTotal);
-    rateController.addListener(calculateQuantityAndTotal);
+    quantityController.addListener(calculateTotal);
+    weightController.addListener(calculateTotal);
+    rateController.addListener(calculateTotal);
   }
 
   @override
   void dispose() {
     itemNameController.dispose();
-    cratesController.dispose();
-    remainingController.dispose();
-    rateController.dispose();
     quantityController.dispose();
+    weightController.dispose();
+    rateController.dispose();
     super.dispose();
   }
 
   void updateItemName() {
-    if (selectedCategory == 'egg') {
-      itemNameController.text = '${selectedEggType}_egg';
+    itemNameController.text = selectedCategory;
+  }
+
+  void calculateTotal() {
+    if (selectedCategory == 'hen') {
+      final weight = double.tryParse(weightController.text) ?? 0;
+      final rate = double.tryParse(rateController.text) ?? 0;
+      setState(() {
+        totalAmount = weight * rate;
+      });
     } else {
-      itemNameController.text = selectedCategory;
+      final quantity = double.tryParse(quantityController.text) ?? 0;
+      final rate = double.tryParse(rateController.text) ?? 0;
+      setState(() {
+        totalAmount = quantity * rate;
+      });
     }
-  }
-
-  void calculateQuantityAndTotal() {
-    if (selectedCategory == 'egg') {
-      final crates = int.tryParse(cratesController.text) ?? 0;
-      final remaining = int.tryParse(remainingController.text) ?? 0;
-      final quantity = (crates * 30) + remaining;
-      quantityController.text = quantity.toString();
-    }
-
-    final quantity = double.tryParse(quantityController.text) ?? 0;
-    final rate = double.tryParse(rateController.text) ?? 0;
-    setState(() {
-      totalAmount = quantity * rate;
-    });
-  }
-
-  bool hasAtLeastOneValue() {
-    return (cratesController.text.isNotEmpty &&
-            int.tryParse(cratesController.text) != null) ||
-        (remainingController.text.isNotEmpty &&
-            int.tryParse(remainingController.text) != null);
   }
 
   Widget _buildCategoryChips() {
-    return Wrap(
-      spacing: 2.w,
-      children: categories.map((category) {
-        return ChoiceChip(
-          label: Text(
-            category.toUpperCase(),
-            style: TextStyle(
-              color: selectedCategory == category
-                  ? Colors.white
-                  : AppColors.textPrimary,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Select Category',
+            style: GoogleFonts.inter(
+              fontSize: 17.sp,
               fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
           ),
-          selected: selectedCategory == category,
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.grey[200],
-          onSelected: (selected) {
-            setState(() {
-              selectedCategory = category;
-              if (selectedCategory != 'egg') {
-                selectedEggType = '';
-                cratesController.clear();
-                remainingController.clear();
-                quantityController.clear();
-                rateController.clear();
-              } else {
-                selectedEggType = 'medium';
-              }
-              updateItemName();
-              calculateQuantityAndTotal();
-            });
-          },
-        );
-      }).toList(),
+          const SizedBox(height: 16),
+          Row(
+            children: categories.map((category) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = category;
+                        updateItemName();
+                        calculateTotal();
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: selectedCategory == category
+                            ? Colors.black87
+                            : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: selectedCategory == category
+                              ? Colors.black87
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          category == 'hen' ? 'कुखुरा' : 'मल',
+                          style: GoogleFonts.notoSansDevanagari(
+                            fontSize: 17.sp,
+                            fontWeight: FontWeight.w500,
+                            color: selectedCategory == category
+                                ? Colors.white
+                                : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildEggTypeChips() {
-    return Wrap(
-      spacing: 2.w,
-      children: eggTypes.map((type) {
-        return ChoiceChip(
-          label: Text(
-            type.toUpperCase().replaceAll('_', ' '),
-            style: TextStyle(
-              color: selectedEggType == type
-                  ? Colors.white
-                  : AppColors.textPrimary,
+  Widget _buildInputFields() {
+    if (selectedCategory == 'hen') {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Hen Details',
+              style: GoogleFonts.inter(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: quantityController,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Required';
+                if (double.tryParse(value) == null) return 'Invalid number';
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Total Hen Count (कुखुराको संख्या)',
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  color: Colors.black,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 195, 195, 195)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 197, 197, 197)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 200, 200, 200)),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: weightController,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Required';
+                if (double.tryParse(value) == null) return 'Invalid number';
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Total Weight in KG (जम्मा तौल)',
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  color: Colors.black,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 170, 170, 170)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 164, 164, 164)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 184, 184, 184)),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: rateController,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Required';
+                if (double.tryParse(value) == null) return 'Invalid number';
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Rate per KG (प्रति केजी दर)',
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  color: Colors.black,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 185, 185, 185)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 188, 188, 188)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 187, 187, 187)),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Manure Details',
+              style: GoogleFonts.inter(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black45,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: quantityController,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Required';
+                if (double.tryParse(value) == null) return 'Invalid number';
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Total Bag Count (बोराको संख्या)',
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  color: Colors.black,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 175, 175, 175)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 176, 176, 176)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 179, 179, 179)),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: rateController,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Required';
+                if (double.tryParse(value) == null) return 'Invalid number';
+                return null;
+              },
+              decoration: InputDecoration(
+                labelText: 'Rate per Bag (प्रति बोरा दर)',
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 16.sp,
+                  color: Colors.black,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 175, 175, 175)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 176, 176, 176)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: const Color.fromARGB(255, 170, 170, 170)),
+                ),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildTotalAmount() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Total Amount',
+            style: GoogleFonts.inter(
+              fontSize: 16.sp,
               fontWeight: FontWeight.w500,
+              color: Colors.black45,
             ),
           ),
-          selected: selectedEggType == type,
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.grey[200],
-          onSelected: (selected) {
-            setState(() {
-              selectedEggType = type;
-              updateItemName();
-            });
-          },
-        );
-      }).toList(),
+          const SizedBox(height: 8),
+          Text(
+            'Rs. ${numberFormat.format(totalAmount)}',
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 237, 234, 234),
       appBar: AppBar(
-        title: Text(
-          'Add Sale Item',
-          style: GoogleFonts.inter(
-            fontSize: 18.sp,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: AppColors.primaryColor,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(2.h),
-          child: Form(
-            key: formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Select Category',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 1.h),
-                _buildCategoryChips(),
-                SizedBox(height: 2.h),
-                if (selectedCategory == 'egg') ...[
-                  Text(
-                    'Select Egg Type',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 1.h),
-                  _buildEggTypeChips(),
-                  SizedBox(height: 2.h),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomInputField(
-                          label: 'Total Crates',
-                          hint: 'Enter number of crates',
-                          controller: cratesController,
-                          keyboardType: TextInputType.number,
-                          isNumber: true,
-                          validator: (value) {
-                            if (selectedCategory == 'egg' &&
-                                !hasAtLeastOneValue()) {
-                              return 'Please enter either crates or remaining eggs';
-                            }
-                            if (value != null && value.isNotEmpty) {
-                              if (int.tryParse(value) == null) {
-                                return 'Please enter a valid number';
-                              }
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 2.w),
-                      Expanded(
-                        child: CustomInputField(
-                          label: 'खुद्रा अण्डा',
-                          hint: 'Enter remaining eggs',
-                          controller: remainingController,
-                          keyboardType: TextInputType.number,
-                          isNumber: true,
-                          validator: (value) {
-                            if (selectedCategory == 'egg' &&
-                                !hasAtLeastOneValue()) {
-                              return 'Please enter either crates or remaining eggs';
-                            }
-                            if (value != null && value.isNotEmpty) {
-                              if (int.tryParse(value) == null) {
-                                return 'Please enter a valid number';
-                              }
-                              if (int.parse(value) >= 30) {
-                                return 'Remaining eggs should be less than 30';
-                              }
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ] else if (selectedCategory == 'manure') ...[
-                  CustomInputField(
-                    controller: quantityController,
-                    label: 'Enter total bag ( बोरा संख्या)',
-                    keyboardType: TextInputType.number,
-                    isNumber: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter total bag';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Please enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-                ] else ...[
-                  CustomInputField(
-                    controller: quantityController,
-                    label: 'Quantity',
-                    keyboardType: TextInputType.number,
-                    isNumber: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter quantity';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Please enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-                SizedBox(height: 3.h),
-                CustomInputField(
-                  controller: rateController,
-                  label: 'Rate',
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter rate';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Please enter a valid number';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 2.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(2.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (selectedCategory == 'egg')
-                        Text(
-                          'Total Quantity: ${quantityController.text}',
-                          style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      SizedBox(height: 1.h),
-                      Text(
-                        'Total Amount',
-                        style: TextStyle(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 1.h),
-                      Text(
-                        'Rs. ${numberFormat.format(totalAmount)}',
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leadingWidth: 70,
+        leading: Center(
+          child: Container(
+            margin: const EdgeInsets.only(left: 20),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.black87, size: 24),
+              onPressed: () => Get.back(),
             ),
           ),
         ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Add Sale Item',
+              style: GoogleFonts.inter(
+                color: Colors.black87,
+                fontSize: 18.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              'बिक्री सामान थप्नुहोस्',
+              style: GoogleFonts.inter(
+                color: Colors.black45,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.all(2.h),
-        child: SizedBox(
-          width: double.infinity,
+      body: Form(
+        key: formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            _buildCategoryChips(),
+            const SizedBox(height: 20),
+            _buildInputFields(),
+            const SizedBox(height: 20),
+            _buildTotalAmount(),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
           child: ElevatedButton(
             onPressed: () {
               if (formKey.currentState?.validate() ?? false) {
@@ -352,6 +481,9 @@ class _AddSaleItemSPageState extends State<AddSaleItemSPage> {
                   quantity: double.parse(quantityController.text),
                   rate: double.parse(rateController.text),
                   total: totalAmount,
+                  totalWeight: selectedCategory == 'hen'
+                      ? double.parse(weightController.text)
+                      : 0.0,
                 );
 
                 Get.back(result: item);
@@ -359,18 +491,30 @@ class _AddSaleItemSPageState extends State<AddSaleItemSPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
-              padding: EdgeInsets.symmetric(vertical: 1.5.h),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text(
-              'Add Item',
-              style: GoogleFonts.notoSansDevanagari(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_circle_outline,
+                  size: 18,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Add  ',
+                  style: GoogleFonts.inter(
+                    fontSize: 18.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

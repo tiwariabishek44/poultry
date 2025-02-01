@@ -1,5 +1,5 @@
-// payment_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -7,49 +7,68 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/model/party_response_model.dart';
 import 'package:poultry/app/modules/payment/payment_controller.dart';
-import 'package:poultry/app/widget/custom_input_field.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class PaymentRecordPage extends StatelessWidget {
   final PartyResponseModel party;
   final PaymentController controller = Get.put(PaymentController());
+  final numberFormat = NumberFormat("#,##,###");
 
   PaymentRecordPage({
     Key? key,
     required this.party,
-  }) : super(key: key);
-  final numberFormat = NumberFormat("#,##,###");
+  }) : super(key: key) {
+    controller.totalCredit.value = party.creditAmount;
+    controller.isCustomer.value = party.partyType == 'customer';
+  }
 
   @override
   Widget build(BuildContext context) {
-    controller.totalCredit.value = party.creditAmount;
-
-    controller.isCustomer.value = party.partyType == 'customer' ? true : false;
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 229, 229, 229),
       appBar: _buildAppBar(),
       body: _buildBody(),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  AppBar _buildAppBar() {
+  PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: Row(
-        children: [
-          Text(
-            'Payment Record ',
-            style: GoogleFonts.notoSansDevanagari(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w600,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      leadingWidth: 70,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
+      leading: Center(
+        child: Material(
+          color: const Color.fromARGB(255, 232, 231, 231),
+          borderRadius: BorderRadius.circular(10),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => Get.back(),
+            child: Container(
+              height: 36,
+              width: 36,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                LucideIcons.chevronLeft,
+                color: Colors.black87,
+                size: 20,
+              ),
             ),
           ),
-        ],
+        ),
       ),
-      backgroundColor: AppColors.primaryColor,
-      elevation: 0,
-      leading: IconButton(
-        icon: Icon(LucideIcons.chevronLeft, color: Colors.white),
-        onPressed: () => Get.back(),
+      title: Text(
+        'Record Payment',
+        style: GoogleFonts.inter(
+          color: Colors.black87,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
+        ),
       ),
     );
   }
@@ -58,211 +77,56 @@ class PaymentRecordPage extends StatelessWidget {
     return Form(
       key: controller.formKey,
       child: ListView(
-        padding: EdgeInsets.all(5.w),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _buildPartyInfoCard(),
-          SizedBox(height: 3.h),
-          _buildDateSelection(),
-          SizedBox(height: 3.h),
-          _buildAmountInput(),
-          SizedBox(height: 3.h),
-          _buildNotesSection(),
-          SizedBox(height: 4.h),
-          _buildSubmitButton(),
+          _buildHeaderCard(),
+          const SizedBox(height: 24),
+          _buildPaymentDetailsCard(),
+          const SizedBox(height: 24),
+          // _buildNotesCard(),
         ],
       ),
     );
   }
 
-  Widget _buildPartyInfoCard() {
+  Widget _buildBottomBar() {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(4.w),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      child: Column(
-        children: [
-          _buildInfoRow(
-            icon: LucideIcons.user,
-            label: 'Party:',
-            value: party.partyName,
-          ),
-          Divider(height: 3.h),
-          _buildInfoRow(
-            icon: LucideIcons.wallet,
-            label: controller.isCustomer.value ? 'To Recive:' : 'To Pay:',
-            value: 'Rs. ${numberFormat.format(party.creditAmount)}',
-            valueColor: AppColors.primaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    Color? valueColor,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.primaryColor, size: 20.sp),
-        SizedBox(width: 3.w),
-        Text(
-          label,
-          style: GoogleFonts.notoSansDevanagari(
-            fontSize: 16.sp,
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Spacer(),
-        Text(
-          value,
-          style: GoogleFonts.notoSansDevanagari(
-            fontSize: 16.sp,
-            color: valueColor ?? AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateSelection() {
-    return CustomInputField(
-      hint: 'Select Payment Date',
-      controller: controller.dateController,
-      prefix: Icon(LucideIcons.calendar, color: AppColors.primaryColor),
-      onTap: () => controller.pickDate(),
-      readOnly: true,
-      label: 'Select Payment Date',
-    );
-  }
-
-  Widget _buildAmountInput() {
-    return Column(
-      children: [
-        CustomInputField(
-          hint: 'Enter Payment Amount',
-          controller: controller.amountController,
-          keyboardType: TextInputType.number,
-          validator: (value) =>
-              controller.validateAmount(value, party.creditAmount),
-          label: 'Enter Payment Amount',
-          onChanged: (value) {
-            controller.calculateRemainingAmount();
-          },
-        ),
-        SizedBox(height: 2.h),
-        // Add remaining amount display
-        Container(
-          padding: EdgeInsets.all(3.w),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.dividerColor),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Remaining Due',
-                style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 15.sp,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              Obx(() => Text(
-                    'Rs. ${numberFormat.format(controller.remainingAmount.value)}',
-                    style: GoogleFonts.notoSansDevanagari(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                      color: controller.remainingAmount.value > 0
-                          ? Colors.red[700]
-                          : Colors.green[700],
-                    ),
-                  )),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNotesSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.dividerColor),
-      ),
-      padding: EdgeInsets.all(4.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(LucideIcons.pencil, color: AppColors.primaryColor),
-              SizedBox(width: 2.w),
-              Text(
-                'Notes',
-                style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2.h),
-          CustomInputField(
-            hint: 'Enter Notes...',
-            controller: controller.notesController,
-            maxLines: 3,
-            label: 'Enter the Notes ',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return Container(
-      width: double.infinity,
-      height: 6.h,
-      child: Obx(() => ElevatedButton.icon(
-            onPressed: () async {
-              // Dismiss keyboard first
-              FocusManager.instance.primaryFocus?.unfocus();
-
-              // Small delay to ensure keyboard is dismissed
-              await Future.delayed(Duration(milliseconds: 100));
-
-              controller.isLoading.value
-                  ? null
-                  : controller.recordPayment(
-                      party.partyId!, party.creditAmount, party.partyName);
-            },
+      child: Obx(() => ElevatedButton(
+            onPressed: controller.isLoading.value
+                ? null
+                : () async {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    controller.recordPayment(
+                      party.partyId!,
+                      party.creditAmount,
+                      party.partyName,
+                    );
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
               ),
-              padding: EdgeInsets.symmetric(vertical: 1.5.h),
+              elevation: 0,
             ),
-            icon: controller.isLoading.value
-                ? SizedBox(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (controller.isLoading.value)
+                  SizedBox(
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
@@ -270,16 +134,416 @@ class PaymentRecordPage extends StatelessWidget {
                       color: Colors.white,
                     ),
                   )
-                : Icon(LucideIcons.checkCircle2, color: Colors.white),
-            label: Text(
-              controller.isLoading.value ? 'Loading ...' : 'Save ',
-              style: GoogleFonts.notoSansDevanagari(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
+                else
+                  Icon(LucideIcons.checkCircle2, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  controller.isLoading.value ? 'Processing...' : 'Save Payment',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           )),
+    );
+  }
+
+  Widget _buildHeaderCard() {
+    final isCustomer = controller.isCustomer.value;
+    final statusColor =
+        isCustomer ? const Color.fromARGB(255, 6, 113, 200) : Colors.teal;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 255, 255, 255),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.5),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    LucideIcons.user,
+                    size: 20,
+                    color: statusColor,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            party.partyName,
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isCustomer ? 'Customer' : 'Supplier',
+                              style: GoogleFonts.inter(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isCustomer ? 'To Receive' : 'To Pay',
+                        style: GoogleFonts.inter(
+                          fontSize: 16.sp,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Rs. ${numberFormat.format(party.creditAmount)}',
+                        style: GoogleFonts.inter(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetailsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  LucideIcons.wallet,
+                  size: 18,
+                  color: Colors.purple.shade700,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Payment Details',
+                style: GoogleFonts.inter(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildDateInput(),
+          const SizedBox(height: 20),
+          _buildAmountInput(),
+          const SizedBox(height: 16),
+          _buildRemainingAmount(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Payment Date (भुक्तानी मिति)',
+          style: GoogleFonts.inter(
+            fontSize: 15.5.sp,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => controller.pickDate(),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              border: Border.all(color: Color.fromARGB(255, 197, 197, 197)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.calendar,
+                  size: 18,
+                  color: Colors.black54,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  controller.dateController.text.isEmpty
+                      ? 'Select date'
+                      : controller.dateController.text,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: controller.dateController.text.isEmpty
+                        ? Colors.black38
+                        : Colors.black87,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  LucideIcons.chevronDown,
+                  size: 18,
+                  color: Colors.black45,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAmountInput() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Payment Amount(भुक्तानी रकम)',
+          style: GoogleFonts.inter(
+            fontSize: 15.5.sp,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller.amountController,
+          keyboardType: TextInputType.number,
+          onChanged: (value) => controller.calculateRemainingAmount(),
+          validator: (value) =>
+              controller.validateAmount(value, party.creditAmount),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            prefixIcon: Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Color.fromARGB(255, 175, 173, 173)),
+              ),
+              child: Text(
+                'Rs.',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
+            hintText: 'Enter amount',
+            hintStyle: GoogleFonts.inter(
+              color: Colors.black38,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide:
+                  BorderSide(color: const Color.fromARGB(255, 149, 147, 147)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide:
+                  BorderSide(color: const Color.fromARGB(255, 173, 171, 171)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide:
+                  BorderSide(color: const Color.fromARGB(255, 159, 157, 157)),
+            ),
+            contentPadding: const EdgeInsets.all(16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRemainingAmount() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Remaining (बाँकी रकम)',
+                  style: GoogleFonts.inter(
+                    fontSize: 15.sp,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Obx(() => Text(
+                      'Rs. ${numberFormat.format(controller.remainingAmount.value)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 16.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: controller.remainingAmount.value > 0
+                            ? Colors.red.shade700
+                            : Colors.green.shade700,
+                      ),
+                    )),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: controller.remainingAmount.value > 0
+                  ? Colors.red.shade50
+                  : Colors.green.shade50,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Obx(() => Text(
+                  controller.remainingAmount.value > 0
+                      ? 'Partial Payment'
+                      : 'Full Payment',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: controller.remainingAmount.value > 0
+                        ? Colors.red.shade700
+                        : Colors.green.shade700,
+                  ),
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotesCard() {
+    return TextFormField(
+      controller: controller.notesController,
+      maxLines: 4,
+      style: GoogleFonts.inter(
+        fontSize: 14,
+        color: Colors.black87,
+      ),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        hintText: 'Enter notes',
+        hintStyle: GoogleFonts.inter(
+          color: Colors.black38,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        contentPadding: const EdgeInsets.all(16),
+      ),
     );
   }
 }

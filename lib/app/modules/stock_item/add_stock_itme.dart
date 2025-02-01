@@ -67,7 +67,6 @@ class AddStockItemPage extends StatelessWidget {
         children: [
           _buildItemNameField(),
           SizedBox(height: 3.h),
-          _buildCategorySelector(),
         ],
       ),
     );
@@ -85,80 +84,6 @@ class AddStockItemPage extends StatelessWidget {
         return null;
       },
     );
-  }
-
-  Widget _buildCategorySelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Category',
-          style: GoogleFonts.notoSans(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        SizedBox(height: 2.h),
-        FormField<String>(
-          initialValue: selectedCategory.value,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please select a category';
-            }
-            return null;
-          },
-          builder: (FormFieldState<String> field) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 2.w,
-                  children: [
-                    _buildChoiceChip('Product', 'product', field),
-                    _buildChoiceChip('Service', 'service', field),
-                  ],
-                ),
-                if (field.hasError)
-                  Padding(
-                    padding: EdgeInsets.only(top: 1.h),
-                    child: Text(
-                      field.errorText!,
-                      style: TextStyle(
-                        color: Colors.red[700],
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChoiceChip(
-      String label, String value, FormFieldState<String> field) {
-    return Obx(() => ChoiceChip(
-          label: Text(
-            label,
-            style: GoogleFonts.notoSans(
-              fontSize: 15.sp,
-              color: selectedCategory.value == value
-                  ? Colors.white
-                  : Colors.black87,
-            ),
-          ),
-          selected: selectedCategory.value == value,
-          selectedColor: AppColors.primaryColor,
-          backgroundColor: Colors.grey[100],
-          onSelected: (bool selected) {
-            if (selected) {
-              selectedCategory.value = value;
-              field.didChange(value);
-            }
-          },
-        ));
   }
 
   Widget _buildSubmitButton() {

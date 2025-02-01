@@ -52,6 +52,8 @@ class PurchaseResponseModel {
   final String? purchaseId;
   final String partyId;
   final String adminId;
+  final String? batchId; // null for eggs
+
   final String yearMonth; // Format: "2024-01"
   final String purchaseDate;
   final List<PurchaseItem> purchaseItems;
@@ -68,6 +70,7 @@ class PurchaseResponseModel {
     this.purchaseId,
     required this.partyId,
     required this.adminId,
+    this.batchId,
     required this.yearMonth,
     required this.purchaseDate,
     required this.purchaseItems,
@@ -86,6 +89,7 @@ class PurchaseResponseModel {
       purchaseId: purchaseId ?? json['purchaseId'],
       partyId: json['partyId'] ?? '',
       adminId: json['adminId'] ?? '',
+      batchId: json['batchId'],
       yearMonth: json['yearMonth'] ?? '',
       purchaseDate: json['purchaseDate'] ?? '',
       purchaseItems: (json['purchaseItems'] as List<dynamic>?)
@@ -106,6 +110,7 @@ class PurchaseResponseModel {
     return {
       'partyId': partyId,
       'adminId': adminId,
+      if (batchId != null) 'batchId': batchId,
       'yearMonth': yearMonth,
       'purchaseDate': purchaseDate,
       'purchaseItems': purchaseItems.map((item) => item.toJson()).toList(),

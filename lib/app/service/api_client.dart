@@ -308,6 +308,36 @@ class FirebaseClient {
       throw e;
     }
   }
+
+  // ----------- update specific collection document only
+  // Add this method to your FirebaseClient class
+
+  Future<ApiResponse<T>> updateDocument<T>({
+    required String collectionPath,
+    required String documentId,
+    required Map<String, dynamic> data,
+    required T Function(Map<String, dynamic> json) responseType,
+  }) async {
+    try {
+      log("Updating document in $collectionPath/$documentId");
+      final docRef = _firestore.collection(collectionPath).doc(documentId);
+
+      // Use update instead of set to only modify specified fields
+      await docRef.update(data);
+
+      // Fetch the updated document
+      final docSnapshot = await docRef.get();
+      if (docSnapshot.exists) {
+        final responseData = responseType(docSnapshot.data()!);
+        return ApiResponse.completed(responseData);
+      } else {
+        return ApiResponse.error("Document not found after update");
+      }
+    } catch (e) {
+      log("Error in updateDocument: $e");
+      return ApiResponse.error(FirebaseErrorMapper.getErrorMessage(e));
+    }
+  }
 }
 
 class FirebaseErrorMapper {

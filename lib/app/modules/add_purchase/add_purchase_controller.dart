@@ -8,6 +8,7 @@ import 'package:poultry/app/modules/parties_detail/parties_controller.dart';
 import 'package:poultry/app/modules/transction_main_screen/transction_controller.dart';
 import 'package:poultry/app/repository/purchase_repository.dart';
 import 'package:poultry/app/service/api_client.dart';
+import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
 import 'package:poultry/app/widget/loading_State.dart';
 
@@ -17,6 +18,7 @@ class PurchaseController extends GetxController {
   final _loginController = Get.find<LoginController>();
   final _purchaseRepository = PurchaseRepository();
   final controller = Get.put(TransactionsController());
+  final selectedBatchController = Get.put(BatchesDropDownController());
 
   // Observable lists and values
   final selectedItems = <PurchaseItem>[].obs;
@@ -24,6 +26,8 @@ class PurchaseController extends GetxController {
   final dueAmount = 0.0.obs;
   final isServicePurchase = false.obs;
 
+// i want the purchase type as ( batch) ( general)
+  final purchaseType = 'batch'.obs;
   // Form controllers
   final formKey = GlobalKey<FormState>();
   final paidAmount = TextEditingController();
@@ -82,7 +86,7 @@ class PurchaseController extends GetxController {
 
     if (selectedItems.isEmpty) {
       CustomDialog.showError(
-        message: 'Please add at least one item to the purchase.',
+        message: 'कृपया खरिदमा कम्तिमा एउटा वस्तु थप्नुहोस्।',
       );
       return;
     }
@@ -93,10 +97,18 @@ class PurchaseController extends GetxController {
       );
       return;
     }
+    if (purchaseType.value == 'batch' &&
+        selectedBatchController.selectedBatchId.value == '') {
+      CustomDialog.showError(
+        message: 'कृपया ब्याच select गर्नुहोस्।',
+      );
+      return;
+    }
 
     _showLoadingDialog();
 
     try {
+      log(" batch id ${selectedBatchController.selectedBatchId.value}");
       // Generate remarks for the transaction
       final itemNames = selectedItems.map((item) => item.itemName).toList();
       final remarks = '${partyName} : ${itemNames.join(", ")} ';
@@ -112,6 +124,9 @@ class PurchaseController extends GetxController {
         'dueAmount': dueAmount.value,
         'paymentStatus': paymentStatus,
         'isServicePurchase': isServicePurchase.value,
+        'batchId': purchaseType.value == 'batch'
+            ? selectedBatchController.selectedBatchId.value
+            : '',
         if (invoiceNumber.text.isNotEmpty) 'invoiceNumber': invoiceNumber.text,
         if (notes.text.isNotEmpty) 'notes': notes.text,
       };

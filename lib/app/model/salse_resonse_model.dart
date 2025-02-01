@@ -4,15 +4,15 @@
 class SaleItem {
   final String itemName;
   final String category; // 'egg', 'hen', 'manure'
-  final String? batchId; // null for eggs
   final double rate;
+  final double totalWeight;
   final double quantity;
   final double total;
 
   SaleItem({
     required this.itemName,
     required this.category,
-    this.batchId,
+    required this.totalWeight,
     required this.rate,
     required this.quantity,
     required this.total,
@@ -22,8 +22,8 @@ class SaleItem {
     return SaleItem(
       itemName: json['itemName'] ?? '',
       category: json['category'] ?? '',
-      batchId: json['batchId'],
       rate: (json['rate'] ?? 0.0).toDouble(),
+      totalWeight: (json['totalWeight'] ?? 0.0).toDouble(),
       quantity: (json['quantity'] ?? 0.0).toDouble(),
       total: (json['total'] ?? 0.0).toDouble(),
     );
@@ -33,8 +33,8 @@ class SaleItem {
     return {
       'itemName': itemName,
       'category': category,
-      if (batchId != null) 'batchId': batchId,
       'rate': rate,
+      'totalWeight': totalWeight,
       'quantity': quantity,
       'total': total,
     };
@@ -45,6 +45,8 @@ class SalesResponseModel {
   final String? saleId;
   final String partyId;
   final String adminId;
+  final String? batchId; // null for eggs
+
   final String yearMonth; // Format: "2024-01"
   final String saleDate;
   final List<SaleItem> saleItems;
@@ -58,6 +60,7 @@ class SalesResponseModel {
     this.saleId,
     required this.partyId,
     required this.adminId,
+    this.batchId,
     required this.yearMonth,
     required this.saleDate,
     required this.saleItems,
@@ -74,6 +77,7 @@ class SalesResponseModel {
       saleId: saleId ?? json['saleId'],
       partyId: json['partyId'] ?? '',
       adminId: json['adminId'] ?? '',
+      batchId: json['batchId'],
       yearMonth: json['yearMonth'] ?? '',
       saleDate: json['saleDate'] ?? '',
       saleItems: (json['saleItems'] as List<dynamic>?)
@@ -92,6 +96,7 @@ class SalesResponseModel {
     return {
       'partyId': partyId,
       'adminId': adminId,
+      if (batchId != null) 'batchId': batchId,
       'yearMonth': yearMonth,
       'saleDate': saleDate,
       'saleItems': saleItems.map((item) => item.toJson()).toList(),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/splash_screen/splash_scren_controller.dart';
-import 'package:poultry/appss/config/constant.dart';
-import 'package:poultry/appss/widget/splashScreen/poultrySplashScreenController.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -62,7 +61,7 @@ class SplashScreen extends StatelessWidget {
                             Icon(
                               LucideIcons.egg,
                               size: 20.w,
-                              color: AppTheme.primaryColor,
+                              color: AppColors.primaryColor,
                             ),
                             Positioned(
                               bottom: 2.w,
@@ -70,7 +69,7 @@ class SplashScreen extends StatelessWidget {
                               child: Icon(
                                 LucideIcons.bird,
                                 size: 14.w,
-                                color: AppTheme.primaryColor.withOpacity(0.7),
+                                color: AppColors.primaryColor.withOpacity(0.7),
                               ),
                             ),
                           ],
@@ -98,7 +97,6 @@ class SplashScreen extends StatelessWidget {
                               style: GoogleFonts.notoSansDevanagari(
                                 fontSize: 28.sp,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.textRich,
                               ),
                             ),
                             Text(
@@ -106,7 +104,6 @@ class SplashScreen extends StatelessWidget {
                               style: GoogleFonts.notoSansDevanagari(
                                 fontSize: 28.sp,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.accentTeal,
                               ),
                             ),
                           ],
@@ -128,7 +125,6 @@ class SplashScreen extends StatelessWidget {
                         'कुखुरा फार्म व्यवस्थापन सजिलो बनाउँछौं',
                         style: GoogleFonts.notoSansDevanagari(
                           fontSize: 16.sp,
-                          color: AppTheme.textMedium,
                         ),
                       ),
                     );
@@ -141,7 +137,7 @@ class SplashScreen extends StatelessWidget {
                   height: 8.w,
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      AppTheme.primaryColor,
+                      AppColors.primaryColor,
                     ),
                     strokeWidth: 3,
                   ),
@@ -153,7 +149,6 @@ class SplashScreen extends StatelessWidget {
                     'Version 1.0.0',
                     style: GoogleFonts.notoSansDevanagari(
                       fontSize: 14.sp,
-                      color: AppTheme.textMedium.withOpacity(0.7),
                     ),
                   ),
                 ),

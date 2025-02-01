@@ -124,49 +124,6 @@ class AddBatchPage extends StatelessWidget {
               ),
               SizedBox(height: 3.h),
 
-              // Flock Statistics Card
-              _buildInfoCard(
-                title: 'Flock Statistics / चल्ला तथ्याङ्क',
-                icon: LucideIcons.layers,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomInputField(
-                          label: 'Total Flocks Death / कुल मृत्यु ',
-                          hint: '0',
-                          controller: controller.deathCountController,
-                          validator: controller.validateDeathCount,
-                          keyboardType: TextInputType.number,
-                          isNumber: true,
-                          prefix: Icon(LucideIcons.alertTriangle,
-                              color: AppColors.primaryColor),
-                          onChanged: (value) {
-                            controller.updateRemainingFlock();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 2.h),
-                  Row(
-                    children: [
-                      Icon(LucideIcons.bird, color: AppColors.primaryColor),
-                      SizedBox(width: 2.w),
-                      Obx(() => Text(
-                            'Remaining Flock: ${controller.remainingFlock.value}',
-                            style: GoogleFonts.notoSansDevanagari(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.primaryColor,
-                            ),
-                          )),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 5.h),
-
               // Submit Button
               SizedBox(
                 width: double.infinity,
@@ -177,13 +134,7 @@ class AddBatchPage extends StatelessWidget {
                     await Future.delayed(Duration(milliseconds: 100));
                     controller.createBatch();
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: Icon(LucideIcons.plus, color: Colors.white),
+                  icon: Icon(Icons.save),
                   label: Text(
                     'Save ',
                     style: GoogleFonts.notoSansDevanagari(
@@ -191,6 +142,9 @@ class AddBatchPage extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
                     ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
                   ),
                 ),
               ),

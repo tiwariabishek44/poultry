@@ -1,4 +1,6 @@
 // date_selector_controller.dart
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
@@ -63,7 +65,6 @@ class DateSelectorController extends GetxController {
 }
 
 class DateSelectorWidget extends StatelessWidget {
-  final DateSelectorController controller;
   final String? label;
   final String? hint;
   final bool showBorder;
@@ -71,13 +72,12 @@ class DateSelectorWidget extends StatelessWidget {
 
   DateSelectorWidget({
     Key? key,
-    required this.controller,
     this.label,
     this.hint,
     this.showBorder = true,
     this.showCard = true,
   }) : super(key: key);
-
+  final DateSelectorController controller = Get.put(DateSelectorController());
   @override
   Widget build(BuildContext context) {
     Widget dateField = CustomInputField(
@@ -102,15 +102,6 @@ class DateSelectorWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (label != null)
-            Text(
-              label!,
-              style: GoogleFonts.notoSansDevanagari(
-                fontSize: 15.sp,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          if (label != null) SizedBox(height: 2.h),
           dateField,
         ],
       ),

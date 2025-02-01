@@ -3,14 +3,11 @@ import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/add_batch/add_batch.dart';
-import 'package:poultry/app/modules/egg_collection_add/egg_colleciton.dart';
+import 'package:poultry/app/modules/add_daily_weight_gain/daily_weight_gain.dart';
 import 'package:poultry/app/modules/feed_consumption/feed_consumption.dart';
 import 'package:poultry/app/modules/flock_death/flock_death.dart';
-import 'package:poultry/app/modules/item_rates/item_rate_page.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
-import 'package:poultry/app/modules/my_vaccine/vaccine_schedule.dart';
-import 'package:poultry/app/modules/rice_husk_spray/rice_husk_spray.dart';
-import 'package:poultry/app/modules/stock_item/stock_item_list.dart';
+import 'package:poultry/app/modules/flock_medication/medicine_list.dart';
 import 'package:poultry/app/widget/custom_buttons.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -66,16 +63,12 @@ class HomeScreen extends StatelessWidget {
             'Daily Activity',
             [
               _buildGridButtons([
-                ButtonData('Egg Collection', 'assets/egg.jpeg',
-                    () => Get.to(() => EggCollectionPage())),
                 ButtonData('Daily Feed', 'assets/grains.pngs',
                     () => Get.to(() => FeedConsumptionPage())),
                 ButtonData('Motality Record', 'assets/egg.jpeg',
                     () => Get.to(() => FlockDeathPage())),
-                ButtonData('भुस Record', 'assets/nusk.jpeg',
-                    () => Get.to(() => RiceHuskPage())),
                 ButtonData('Stock Items', 'assets/layers.jpeg',
-                    () => Get.to(() => FeedRatePage())),
+                    () => Get.to(() => AddDailyWeightPage())),
               ]),
             ],
           ),
@@ -95,7 +88,7 @@ class HomeScreen extends StatelessWidget {
             [
               _buildGridButtons([
                 ButtonData('Vaccination', 'assets/vaccine.png',
-                    () => Get.to(() => VaccineSchedulePage())),
+                    () => Get.to(() => MedicinePage())),
 
                 // ButtonData('Stock Items', 'assets/layers.jpeg',
                 //     () => Get.to(() => StockItemsListPage())),

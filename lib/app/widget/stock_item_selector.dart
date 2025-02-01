@@ -1,6 +1,7 @@
 // stock_item_selector_controller.dart
 import 'package:get/get.dart';
 import 'package:poultry/app/model/stock_item_reposonse_model.dart';
+import 'package:poultry/app/modules/stock_item/stock_item_list.dart';
 import 'package:poultry/app/repository/stock_item_reposityr.dart';
 import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
@@ -104,6 +105,29 @@ class StockSelectorSheet extends StatelessWidget {
       ),
       child: Row(
         children: [
+          ElevatedButton(
+            onPressed: () {
+              // Navigate to add item page
+              Get.back(); // Close the bottom sheet first
+              Get.to(() => StockItemsListPage());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Add',
+              style: GoogleFonts.notoSans(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          SizedBox(width: 2.w),
           Expanded(
             child: Text(
               'Select Item',
@@ -131,26 +155,12 @@ class StockSelectorSheet extends StatelessWidget {
       }
 
       if (controller.stockItems.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                LucideIcons.package,
-                size: 48,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No Items Available',
-                style: GoogleFonts.notoSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
+        return NoStockItemsWidget(
+          onAddItem: () {
+            // Navigate to add item page
+            Get.back(); // Close the bottom sheet first
+            Get.to(() => StockItemsListPage());
+          },
         );
       }
 
@@ -199,5 +209,187 @@ class StockSelectorSheet extends StatelessWidget {
         onTap: () => controller.selectItem(item),
       );
     });
+  }
+}
+
+class NoStockItemsWidget extends StatelessWidget {
+  final VoidCallback? onAddItem;
+
+  const NoStockItemsWidget({
+    Key? key,
+    this.onAddItem,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        padding: EdgeInsets.all(4.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Top Section with Icon and Title
+            Container(
+              padding: EdgeInsets.all(5.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Column(
+                children: [
+                  // Icon
+                  Container(
+                    padding: EdgeInsets.all(5.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      LucideIcons.packagePlus,
+                      size: 32.sp,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+
+                  // Title
+                  Text(
+                    'स्टक सामग्री थप्नुहोस्',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    'Add Stock Items',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 18.sp,
+                      color: const Color(0xFF718096),
+                    ),
+                  ),
+                  SizedBox(height: 2.h),
+
+                  // Description
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 2.w),
+                    child: Text(
+                      'तपाईंको फार्मको लागि आवश्यक सामग्रीहरू थप्नुहोस्\nAdd necessary items for your farm management',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.notoSans(
+                        fontSize: 15.sp,
+                        color: const Color(0xFF718096),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 3.h),
+
+            // Add Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onAddItem,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 2.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(LucideIcons.plus, size: 20.sp),
+                    SizedBox(width: 2.w),
+                    Text(
+                      'नयाँ सामग्री थप्नुहोस्',
+                      style: GoogleFonts.notoSans(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String description,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(3.w),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.primaryColor.withOpacity(0.1),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(2.5.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: AppColors.primaryColor,
+              size: 22.sp,
+            ),
+          ),
+          SizedBox(width: 3.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.notoSans(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.notoSans(
+                    fontSize: 15.sp,
+                    color: const Color(0xFF718096),
+                  ),
+                ),
+                SizedBox(height: 0.5.h),
+                Text(
+                  description,
+                  style: GoogleFonts.notoSans(
+                    fontSize: 14.sp,
+                    color: const Color(0xFF718096),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

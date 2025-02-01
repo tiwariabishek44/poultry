@@ -67,6 +67,9 @@ dependencies:
   open_file: ^3.5.10
   fl_chart: ^0.69.2
   flutter_downloader: ^1.11.8
+  flutter_animate: ^4.5.2
+  file_picker: ^6.1.1
+  youtube_player_iframe: ^4.0.4 # This version is compatible with your SDK
 
 dev_dependencies:
   flutter_test:

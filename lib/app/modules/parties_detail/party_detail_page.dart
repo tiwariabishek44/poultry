@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,63 +23,110 @@ class PartyDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color.fromARGB(255, 246, 246, 246),
       appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        title: Obx(() => Text(
-              controller.partyDetails.value?.partyName ?? 'Party Details',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            )),
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left),
-          onPressed: () {
-            Get.back();
-          },
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leadingWidth: 64,
+        scrolledUnderElevation: 0,
+        leading: Center(
+          child: Container(
+            margin: const EdgeInsets.only(left: 20),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              icon: Icon(LucideIcons.chevronLeft,
+                  color: Colors.black87, size: 20),
+              onPressed: () => Get.back(),
+            ),
+          ),
         ),
+        title: Obx(() => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  controller.partyDetails.value?.partyName ?? 'Party Details',
+                  style: GoogleFonts.inter(
+                    color: Colors.black87,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                SizedBox(height: 1.h),
+                Text(
+                  controller.partyDetails.value?.partyType == 'supplier'
+                      ? 'Supplier'
+                      : 'Customer',
+                  style: GoogleFonts.inter(
+                    color:
+                        controller.partyDetails.value?.partyType == 'supplier'
+                            ? Colors.blue
+                            : Colors.green,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            )),
+        centerTitle: false,
+        toolbarHeight: 70,
       ),
       body: Obx(() {
         if (controller.isLoadingDetails.value) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.black54,
+            ),
+          );
         }
 
         final party = controller.partyDetails.value;
         if (party == null) {
-          return Center(child: Text('Party not found'));
+          return Center(
+            child: Text(
+              'No data available',
+              style: GoogleFonts.inter(color: Colors.black54),
+            ),
+          );
         }
 
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildBalanceCard(),
-              // _buildQuickActions(),
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  "All Transactions",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+        return CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _buildBalanceCard()),
+            // SliverToBoxAdapter(child: _buildQuickActions()),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 32, 20, 16),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  children: [
+                    Text(
+                      "All  Transactions",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
                 ),
               ),
-              _buildTransactionList(),
-              SizedBox(height: 100), // Space for floating buttons
-            ],
-          ),
+            ),
+            _buildTransactionList(),
+            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+          ],
         );
       }),
-      floatingActionButton: Obx(() {
-        if (controller.isLoadingDetails.value) {
-          return SizedBox.shrink();
-        }
-        return _buildFloatingButtons();
+      bottomNavigationBar: Obx(() {
+        if (controller.isLoadingDetails.value) return const SizedBox.shrink();
+        return _buildBottomActions();
       }),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -89,23 +134,24 @@ class PartyDetailsPage extends StatelessWidget {
     final party = controller.partyDetails.value!;
     final isCustomer = party.partyType == 'customer';
     final isCredited = party.isCredited;
-    final balanceText =
-        isCredited ? (isCustomer ? 'To Receive' : 'To Give') : 'Settled';
-    final balanceColor = isCredited
-        ? (isCustomer ? Color(0xFF2E7D32) : Color(0xFFD32F2F))
-        : AppColors.primaryColor;
 
     return Container(
-      width: double.infinity,
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: balanceColor,
-          width: 2,
-        ),
-        borderRadius: BorderRadius.circular(12),
+            color: isCredited
+                ? (isCustomer ? Colors.green : Colors.red)
+                : Colors.black),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,38 +159,112 @@ class PartyDetailsPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Current Balance',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[700],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total Balance',
+                    style: GoogleFonts.inter(
+                      color: Colors.black54,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Rs. ${numberFormat.format(party.creditAmount)}',
+                    style: GoogleFonts.inter(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                ],
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: balanceColor.withOpacity(0.1),
+                  color: isCredited
+                      ? (isCustomer ? Colors.green : Colors.red)
+                      : Colors.black,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  balanceText,
-                  style: TextStyle(
-                    color: balanceColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  isCredited
+                      ? (isCustomer ? 'To Receive' : 'To Pay')
+                      : 'Settled',
+                  style: GoogleFonts.inter(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8),
-          Text(
-            'Rs. ${numberFormat.format(party.creditAmount)}',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: balanceColor,
-            ),
-          ),
+          // if (isCredited) ...[
+          //   const SizedBox(height: 20),
+          //   Container(
+          //     padding: const EdgeInsets.all(12),
+          //     decoration: BoxDecoration(
+          //       color: Colors.grey.shade50,
+          //       borderRadius: BorderRadius.circular(12),
+          //     ),
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //       children: [
+          //         Column(
+          //           crossAxisAlignment: CrossAxisAlignment.start,
+          //           children: [
+          //             Text(
+          //               'Last Transaction',
+          //               style: GoogleFonts.inter(
+          //                 fontSize: 12,
+          //                 color: Colors.black54,
+          //               ),
+          //             ),
+          //             const SizedBox(height: 4),
+          //             Text(
+          //               '2 days ago',
+          //               style: GoogleFonts.inter(
+          //                 fontSize: 13,
+          //                 fontWeight: FontWeight.w500,
+          //                 color: Colors.black87,
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //         Container(
+          //           height: 24,
+          //           width: 1,
+          //           color: Colors.grey.shade200,
+          //         ),
+          //         Column(
+          //           crossAxisAlignment: CrossAxisAlignment.start,
+          //           children: [
+          //             Text(
+          //               'Payment Due',
+          //               style: GoogleFonts.inter(
+          //                 fontSize: 12,
+          //                 color: Colors.black54,
+          //               ),
+          //             ),
+          //             const SizedBox(height: 4),
+          //             Text(
+          //               'In 5 days',
+          //               style: GoogleFonts.inter(
+          //                 fontSize: 13,
+          //                 fontWeight: FontWeight.w500,
+          //                 color: Colors.orange.shade700,
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ],
         ],
       ),
     );
@@ -152,22 +272,34 @@ class PartyDetailsPage extends StatelessWidget {
 
   Widget _buildQuickActions() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildActionButton(
-            icon: Icons.call,
+            icon: LucideIcons.phone,
             label: 'फोन गर्नुहोस्',
             onTap: () {},
           ),
           _buildActionButton(
-            icon: Icons.history,
+            icon: Icons.picture_as_pdf_outlined,
             label: 'पैसा तिरेको विवरण',
             onTap: () {},
           ),
           _buildActionButton(
-            icon: Icons.share,
+            icon: LucideIcons.share2,
             label: 'विवरण पठाउनुहोस्',
             onTap: () {},
           ),
@@ -183,27 +315,35 @@ class PartyDetailsPage extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.1),
-              shape: BoxShape.circle,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 90,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                size: 19.sp,
+                color: Colors.black87,
+              ),
             ),
-            child: Icon(
-              icon,
-              color: AppColors.primaryColor,
-              size: 24,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: Colors.black54,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(fontSize: 14),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -211,229 +351,337 @@ class PartyDetailsPage extends StatelessWidget {
   Widget _buildTransactionList() {
     return Obx(() {
       if (controller.isLoadingTransactions.value) {
-        return Center(child: CircularProgressIndicator());
-      }
-
-      if (controller.transactions.isEmpty) {
-        return Center(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'No transactions found',
-              style: GoogleFonts.inter(
-                fontSize: 16.sp,
-                color: Colors.grey,
-              ),
+        return const SliverToBoxAdapter(
+          child: Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.black54,
             ),
           ),
         );
       }
 
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: 3.w),
-        itemCount: controller.transactions.length,
-        itemBuilder: (context, index) {
-          final transaction = controller.transactions[index];
-          final statusColor = transaction.status == "FULL_PAID"
-              ? Color(0xFF2E7D32)
-              : transaction.status == "PARTIAL_PAID"
-                  ? Color(0xFFED6C02)
-                  : Color(0xFFD32F2F);
-
-          final date = DateTime.parse(transaction.transactionDate);
-          final formattedDate = "${date.day}/${date.month}/${date.year}";
-          // Format the transaction time to show only hour and minute
-          final time = transaction.transactionTime.split(':');
-          final formattedTime = "${time[0]}:${time[1]}";
-          return Card(
-            margin: EdgeInsets.only(bottom: 1.5.h),
-            elevation: 0.5,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(
-                color: transaction.transactionType == "PAYMENT_IN"
-                    ? Colors.green.shade100
-                    : Colors.grey.shade200,
-              ),
+      if (controller.transactions.isEmpty) {
+        return SliverToBoxAdapter(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  LucideIcons.clipboardList,
+                  size: 48,
+                  color: Colors.grey.shade300,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No transactions yet',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.black38,
+                  ),
+                ),
+              ],
             ),
-            child: Padding(
-              padding: EdgeInsets.all(3.w),
-              child: Column(
-                children: [
-                  // Header with Type and Date
-                  Row(
-                    children: [
-                      Icon(
-                        transaction.transactionType == "PAYMENT_IN"
-                            ? LucideIcons.arrowDownLeft
-                            : transaction.transactionType == "PAYMENT_OUT"
-                                ? LucideIcons.arrowUpRight
-                                : LucideIcons.shoppingCart,
-                        color: transaction.transactionType == "PAYMENT_IN"
-                            ? Colors.green
-                            : transaction.transactionType == "PAYMENT_OUT"
-                                ? Colors.red
-                                : Colors.blue,
-                        size: 18.sp,
-                      ),
-                      SizedBox(width: 2.w),
-                      Text(
-                        transaction.transactionType,
-                        style: GoogleFonts.inter(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade800,
-                        ),
-                      ),
-                      Spacer(),
-                      Text(
-                        'Rs. ${numberFormat.format(transaction.totalAmount)}',
-                        style: GoogleFonts.inter(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: transaction.transactionType == "PAYMENT_IN"
-                              ? Colors.green.shade700
-                              : Colors.grey.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Divider(height: 1.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        formattedDate + ' - ' + formattedTime,
-                        style: GoogleFonts.inter(
-                          fontSize: 14.sp,
-                          color: const Color.fromARGB(255, 7, 7, 7),
-                        ),
-                      ),
-                      if (transaction.transactionType != 'OPENING_BALANCE')
-                        Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                transaction.getStatusDisplay(),
-                                style: GoogleFonts.inter(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ),
-                            if (transaction.transactionType !=
-                                    'OPENING_BALANCE' &&
-                                transaction.unpaidAmount != null &&
-                                transaction.unpaidAmount! >
-                                    0) // Add null check here
-                              Padding(
-                                padding: EdgeInsets.only(top: 4),
-                                child: Text(
-                                  'Unpaid :Rs. ${numberFormat.format(transaction.unpaidAmount ?? 0)}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14.sp,
-                                    color: Colors.red.shade700,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                    ],
-                  ),
+          ),
+        );
+      }
 
-                  SizedBox(height: 1.5.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Balance Due :',
-                        style: GoogleFonts.inter(
-                          fontSize: 15.sp,
-                          color: const Color.fromARGB(255, 32, 31, 31),
-                        ),
-                      ),
-                      SizedBox(width: 1.w),
-                      Text(
-                        'Rs. ${numberFormat.format(transaction.balance)}',
-                        style: GoogleFonts.inter(
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w500,
-                          color: const Color.fromARGB(255, 22, 21, 21),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+      return SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final transaction = controller.transactions[index];
+            return _buildTransactionTile(transaction);
+          },
+          childCount: controller.transactions.length,
+        ),
       );
     });
   }
 
-  Widget _buildFloatingButtons() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildTransactionTile(TransactionResponseModel transaction) {
+    final date = DateTime.parse(transaction.transactionDate);
+    final formattedDate = "${date.day}/${date.month}/${date.year}";
+    final time = transaction.transactionTime.split(':');
+    final formattedTime = "${time[0]}:${time[1]}";
+
+    final isPayment = transaction.transactionType.contains("PAYMENT");
+    final isPurchase = !isPayment;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color:
+                            getTransactionTypeColor(transaction.transactionType)
+                                .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                          getTransactionTypeIcon(transaction.transactionType),
+                          size: 16,
+                          color: getTransactionTypeColor(
+                              transaction.transactionType)),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          transaction.transactionType,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$formattedDate · $formattedTime',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Colors.black45,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Rs. ${numberFormat.format(transaction.totalAmount)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        if (transaction.transactionType != 'OPENING_BALANCE' &&
+                            transaction.transactionType != 'PAYMENT_OUT' &&
+                            transaction.transactionType != 'PAYMENT_IN') ...[
+                          const SizedBox(height: 4),
+                          _buildStatusChip(transaction),
+                          SizedBox(height: 2.h),
+                        ]
+                      ],
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (transaction.transactionType != 'OPENING_BALANCE' &&
+                        transaction.transactionType != 'PAYMENT_OUT' &&
+                        transaction.transactionType != 'PAYMENT_IN')
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Unpaid Amount',
+                            style: GoogleFonts.inter(
+                              fontSize: 14.5.sp,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Rs. ${numberFormat.format(transaction.unpaidAmount ?? 0.0)}',
+                            style: GoogleFonts.inter(
+                              fontSize: 15.5.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Balance Due',
+                          style: GoogleFonts.inter(
+                            fontSize: 14.5.sp,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Rs. ${numberFormat.format(transaction.balance ?? 0.0)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Function to get icon for transaction type
+  IconData getTransactionTypeIcon(String transactionType) {
+    switch (transactionType) {
+      case 'SALE':
+        return LucideIcons.shoppingCart;
+      case 'PURCHASE':
+        return LucideIcons.shoppingCart;
+      case 'PAYMENT_IN':
+        return LucideIcons.arrowDownLeft;
+      case 'PAYMENT_OUT':
+        return LucideIcons.arrowUpRight;
+      case 'EXPENSE':
+        return LucideIcons.creditCard;
+      default:
+        return LucideIcons.fileText;
+    }
+  }
+
+  Color getTransactionTypeColor(String transactionType) {
+    switch (transactionType) {
+      case 'PAYMENT_IN':
+        return Colors.green;
+      case 'PAYMENT_OUT':
+        return Colors.red;
+      case 'EXPENSE':
+        return Colors.purple;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  Widget _buildStatusChip(TransactionResponseModel transaction) {
+    Color statusColor;
+    String statusText;
+
+    switch (transaction.status) {
+      case "FULL_PAID":
+        statusColor = Colors.green.shade700;
+        statusText = "Paid";
+        break;
+      case "PARTIAL_PAID":
+        statusColor = Colors.orange.shade700;
+        statusText = "Partial";
+        break;
+      default:
+        statusColor = Colors.red.shade700;
+        statusText = "Unpaid";
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        statusText,
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: statusColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomActions() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Expanded(
-            child: ElevatedButton.icon(
+            child: TextButton(
+              onPressed: () {
+                Get.to(() =>
+                    PaymentRecordPage(party: controller.partyDetails.value!));
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                      color: const Color.fromARGB(255, 109, 108, 108)),
+                ),
+              ),
+              child: Text(
+                controller.partyDetails.value!.partyType == 'customer'
+                    ? 'Payment Revice'
+                    : "Payment Give",
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
               onPressed: () {
                 if (controller.partyDetails.value!.partyType == 'customer') {
                   Get.to(
                       () => AddSalePage(party: controller.partyDetails.value!));
                 } else {
-                  Get.to(() => AddPurchasePage(
-                        party: controller.partyDetails.value!,
-                      ));
+                  Get.to(() =>
+                      AddPurchasePage(party: controller.partyDetails.value!));
                 }
               },
-              label: Text(
-                controller.partyDetails.value!.partyType == 'customer'
-                    ? 'Sell'
-                    : 'Purchase',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 165, 44, 35),
-                padding: EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: Color.fromARGB(255, 54, 140, 57),
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Get.to(() =>
-                    PaymentRecordPage(party: controller.partyDetails.value!));
-              },
-              label: Text(
+              child: Text(
                 controller.partyDetails.value!.partyType == 'customer'
-                    ? 'Payment Recived'
-                    : "Payment Give",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromARGB(255, 54, 140, 57),
-                padding: EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                    ? 'New Sale'
+                    : 'New Purchase',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
                 ),
               ),
             ),

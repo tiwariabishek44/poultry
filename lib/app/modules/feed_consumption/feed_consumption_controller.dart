@@ -2,12 +2,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
-import 'package:poultry/app/modules/item_rates/item_rates_controller.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/repository/feed_consumption_repository.dart';
 import 'package:poultry/app/service/api_client.dart';
 import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
+import 'package:poultry/app/widget/date_select_widget.dart';
+import 'package:poultry/app/widget/feed_selection.dart';
 import 'package:poultry/app/widget/loading_State.dart';
 
 class FeedConsumptionController extends GetxController {
@@ -16,7 +17,8 @@ class FeedConsumptionController extends GetxController {
   final _feedConsumptionRepository = FeedConsumptionRepository();
   final _loginController = Get.find<LoginController>();
   final batchesDropDownController = Get.put(BatchesDropDownController());
-  final feedTypeSelectorController = Get.put(FeedRateController());
+  final feedTypeSelectorController = Get.put(FeedTypeController());
+  final selectedDateController = Get.put(DateSelectorController());
 
   // Loading state
   final isLoading = false.obs;
@@ -34,7 +36,6 @@ class FeedConsumptionController extends GetxController {
 
   Future<void> createFeedConsumption({
     required String quantityKg,
-    required String feedBrand,
   }) async {
     final adminId = _loginController.adminUid;
 
@@ -46,6 +47,8 @@ class FeedConsumptionController extends GetxController {
     }
 
     final selectedBatchId = batchesDropDownController.selectedBatchId.value;
+    final selectedDate = NepaliDateFormat('yyyy-MM-dd')
+        .format(selectedDateController.selectedDate.value);
     if (selectedBatchId.isEmpty) {
       CustomDialog.showError(
         message: 'Please select a batch first.',
@@ -66,13 +69,11 @@ class FeedConsumptionController extends GetxController {
     isLoading.value = true;
 
     try {
-      final DateTime now = NepaliDateTime.now();
       final consumptionData = {
         'batchId': selectedBatchId,
         'adminId': adminId,
-        'yearMonth': NepaliDateTime.now().toIso8601String().substring(0, 7),
-        'consumptionDate':
-            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+        'yearMonth': selectedDate.substring(0, 7),
+        'consumptionDate': selectedDate,
         'quantityKg': double.parse(quantityKg),
         'feedType': selectedFeedType,
       };

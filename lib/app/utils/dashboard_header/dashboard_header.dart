@@ -53,14 +53,17 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2C5AF1), Color(0xFF4E6AF3)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 15,
-            offset: const Offset(0, 2),
-            spreadRadius: 2,
+            color: const Color(0xFF2C5AF1).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -119,10 +122,6 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          icon: Icon(Icons.menu, color: Colors.black87),
-          onPressed: () => Scaffold.of(context).openDrawer(),
-        ),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +131,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey[600],
+                      color: Colors.white,
                       letterSpacing: 0.5,
                     ),
                   )),
@@ -145,7 +144,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                       style: GoogleFonts.poppins(
                         fontSize: 19.sp,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Colors.white,
                         letterSpacing: 0.2,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -155,7 +154,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: Colors.white,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(

@@ -60,7 +60,7 @@ class LoginController extends GetxController {
 
     try {
       final reqBody = {
-        "phoneNumber": phoneController.text,
+        "phoneNumber": phoneController.text.trim(),
       };
 
       final response = await _loginRepository.login(reqBody);

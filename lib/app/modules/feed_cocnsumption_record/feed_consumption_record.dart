@@ -4,17 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/feed_cocnsumption_record/feed_daily_record.dart';
-import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
-import 'package:poultry/app/widget/filter_dialouge.dart';
+import 'package:poultry/app/modules/batch_managemnt/batch_report_controller.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:intl/intl.dart';
 
-// feed_consumption_record_page.dart (main page)
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:intl/intl.dart';
 import 'feed_consumption_summary.dart';
 
 class FeedConsumptionRecordPage extends StatefulWidget {
@@ -28,19 +21,14 @@ class FeedConsumptionRecordPage extends StatefulWidget {
 class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  DateTime selectedMonth = DateTime.now();
-  final List<String> feedTypes = ['L0', 'L1', 'L2', 'PL', 'L3'];
 
-  final controller = Get.put(MonthlyReportController());
-  final filterController = Get.put(FilterController());
+  final controller = Get.put(BatchReportController());
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _fetchData();
-    ever(filterController.finalDate, (_) => _fetchData());
-    ever(filterController.selectedBatchId, (_) => _fetchData());
   }
 
   void _fetchData() {
@@ -62,7 +50,7 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color.fromARGB(255, 239, 238, 238),
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         elevation: 0,
@@ -127,20 +115,6 @@ class _FeedConsumptionRecordPageState extends State<FeedConsumptionRecordPage>
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           // Replace your existing filter FloatingActionButton with this:
-          FloatingActionButton(
-            onPressed: () {
-              Get.bottomSheet(
-                FilterBottomSheet(
-                  onDateSelected: _onDateSelected,
-                  showBatch: false,
-                ),
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-              );
-            },
-            child: Icon(LucideIcons.filter),
-            heroTag: null,
-          ),
         ],
       ),
       body: TabBarView(

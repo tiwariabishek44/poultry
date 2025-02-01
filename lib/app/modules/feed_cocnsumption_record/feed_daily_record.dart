@@ -1,19 +1,15 @@
 // feed_consumption_daily_records.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:nepali_date_picker/nepali_date_picker.dart';
+import 'package:nepali_utils/nepali_utils.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/model/feed_consumption_response.dart';
-import 'package:poultry/app/widget/filter_dialouge.dart';
+import 'package:poultry/app/widget/empty_report_widget.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
-import 'package:poultry/app/widget/monthly_report/empty_report_widget.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:poultry/app/modules/batch_managemnt/batch_report_controller.dart';
 
 class FeedConsumptionDailyRecords extends StatefulWidget {
   @override
@@ -23,17 +19,13 @@ class FeedConsumptionDailyRecords extends StatefulWidget {
 
 class _FeedConsumptionDailyRecordsState
     extends State<FeedConsumptionDailyRecords> {
-  final controller = Get.find<MonthlyReportController>();
-  final filterController = Get.find<FilterController>();
+  final controller = Get.find<BatchReportController>();
   final numberFormat = NumberFormat('#,##,##0.0');
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final selectedBatchName =
-          filterController.selectedBatch.value?.batchName ?? 'All';
-      final selectedMonth = filterController.selectedDate.value.month;
-      final selectedYear = filterController.selectedDate.value.year;
+      final selectedBatchName = 'All';
 
       if (controller.isLoading.value) {
         return Center(
@@ -48,8 +40,7 @@ class _FeedConsumptionDailyRecordsState
       if (controller.feedConsumptions.isEmpty) {
         return EmptyStateWidget(
           title: 'No records found',
-          message:
-              'Batch: $selectedBatchName\nDate: $selectedMonth-$selectedYear',
+          message: 'Batch: $selectedBatchName ',
           icon: LucideIcons.wheat,
         );
       }
@@ -93,8 +84,8 @@ class _FeedConsumptionDailyRecordsState
             Expanded(
               flex: 3,
               child: Text(
-                DateFormat('dd MMM yyyy')
-                    .format(DateTime.parse(consumption.consumptionDate)),
+                NepaliDateFormat('dd MMM yyyy')
+                    .format(NepaliDateTime.parse(consumption.consumptionDate)),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w500,

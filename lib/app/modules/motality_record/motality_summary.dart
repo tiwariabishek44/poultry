@@ -4,15 +4,13 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:nepali_utils/nepali_utils.dart';
 import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
-import 'package:poultry/app/widget/filter_dialouge.dart';
+import 'package:poultry/app/modules/batch_managemnt/batch_report_controller.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class MortalitySummaryTab extends StatelessWidget {
   MortalitySummaryTab({Key? key}) : super(key: key);
 
-  final controller = Get.find<MonthlyReportController>();
-  final filterController = Get.find<FilterController>();
+  final controller = Get.find<BatchReportController>();
   final numberFormat = NumberFormat('#,##,##0');
 
   @override
@@ -71,7 +69,7 @@ class MortalitySummaryTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Summary  (${NepaliDateFormat('MMMM yyyy').format(filterController.selectedDate.value)})',
+            'Summary ',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w600,

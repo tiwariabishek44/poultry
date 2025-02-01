@@ -2,13 +2,12 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
-import 'package:poultry/app/modules/dashboard/dashboard_controller.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/repository/flock_death_repository.dart';
 import 'package:poultry/app/service/api_client.dart';
-import 'package:poultry/app/utils/batch_card/batch_card_controller.dart';
 import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
+import 'package:poultry/app/widget/date_select_widget.dart';
 import 'package:poultry/app/widget/death_cause_drop_down.dart';
 import 'package:poultry/app/widget/loading_State.dart';
 
@@ -19,6 +18,13 @@ class FlockDeathController extends GetxController {
   final _loginController = Get.find<LoginController>();
   final batchesDropDownController = Get.put(BatchesDropDownController());
   final deathCauseController = Get.put(DeathCauseDropdownController());
+  final selectedDateController = Get.put(DateSelectorController());
+
+  final formKey = GlobalKey<FormState>();
+
+  final deathCountController = TextEditingController();
+  final causeController = TextEditingController();
+  final notesController = TextEditingController();
 
   // Loading state
   final isLoading = false.obs;
@@ -44,6 +50,9 @@ class FlockDeathController extends GetxController {
   }) async {
     final adminId = _loginController.adminUid;
     final selectedCause = deathCauseController.selectedCause.value;
+    final selectedDate = NepaliDateFormat('yyyy-MM-dd').format(
+      selectedDateController.selectedDate.value,
+    );
 
     if (adminId == null) {
       CustomDialog.showError(
@@ -78,28 +87,17 @@ class FlockDeathController extends GetxController {
 
     try {
       final response = await _flockDeathRepository.recordFlockDeath(
+        date: selectedDate,
         batchId: selectedBatchId,
         adminId: adminId,
         deathCount: int.parse(deathCount),
         cause: selectedCause,
-        notes: notes,
+        notes: '',
       );
 
       Get.back(); // Close loading dialog
 
       if (response.status == ApiStatus.SUCCESS) {
-        // Print success response
-        log("========= Death Record Success =========");
-        log("Death ID: ${response.response?.deathId}");
-        log("Batch ID: ${response.response?.batchId}");
-        log("Death Count: ${response.response?.deathCount}");
-        log("Cause: ${response.response?.cause}");
-        log("Date: ${response.response?.date}");
-        if (response.response?.notes != null) {
-          log("Notes: ${response.response?.notes}");
-        }
-        log("=======================================");
-
         // Show success dialog
         CustomDialog.showSuccess(
           message: 'Death record added successfully.',

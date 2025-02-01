@@ -17,6 +17,7 @@ class TransactionsController extends GetxController {
   final filteredTransactions = <TransactionResponseModel>[].obs;
   final isLoading = false.obs;
   final selectedFilter = 'all'.obs;
+  final selectedYearMonth = ''.obs;
 
   @override
   void onInit() {
@@ -63,8 +64,9 @@ class TransactionsController extends GetxController {
       final now = NepaliDateTime.now();
       final yearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
 
-      final response =
-          await _transactionRepo.getTransactionsByYearMonth(yearMonth, adminId);
+      final response = await _transactionRepo.getTransactionsByYearMonth(
+          selectedYearMonth.value == '' ? yearMonth : selectedYearMonth.value,
+          adminId);
 
       if (response.status == ApiStatus.SUCCESS) {
         var sortedTransactions = response.response ?? [];
@@ -111,6 +113,8 @@ class TransactionsController extends GetxController {
           return transaction.transactionType == 'PAYMENT_IN';
         case 'payment_out':
           return transaction.transactionType == 'PAYMENT_OUT';
+        case 'expense':
+          return transaction.transactionType == 'EXPENSE';
         default:
           return true;
       }

@@ -5,7 +5,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
 import 'package:poultry/app/modules/register/user_phone_verification.dart';
-import 'package:poultry/appss/config/constant.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class LoginPage extends GetView<LoginController> {
@@ -114,7 +113,6 @@ class LoginPage extends GetView<LoginController> {
                                     style: GoogleFonts.notoSansDevanagari(
                                       fontSize: 20.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: AppTheme.textRich,
                                     ),
                                   ),
                                   Text(
@@ -139,7 +137,6 @@ class LoginPage extends GetView<LoginController> {
                           style: GoogleFonts.notoSansDevanagari(
                             fontSize: 24.sp,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textRich,
                           ),
                         ),
 
@@ -150,7 +147,6 @@ class LoginPage extends GetView<LoginController> {
                           'Please login to manage your farm',
                           style: GoogleFonts.notoSansDevanagari(
                             fontSize: 14.sp,
-                            color: AppTheme.textMedium,
                           ),
                         ),
 

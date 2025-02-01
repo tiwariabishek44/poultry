@@ -10,8 +10,6 @@ class FirebasePath {
   static const String feedConsumption = 'feed_consumption';
 // my vaccine
 
-  static const String myVaccines = 'my_vaccines'; // Added my vaccines path
-
   static const String riceHusk = 'rice_husk'; // Added rice husk path
 
   // calenderEvents
@@ -31,4 +29,18 @@ class FirebasePath {
   static const String stockItems = 'stock_items'; // Added stock items path
 // itemrates
   static String itemRates = 'item_rates'; // Added item rates path
+  // dailyGas
+  static const String dailyGas = 'daily_gas'; // Added daily gas path
+  // fcrValues
+  static const String dailyWeightGain =
+      'daily_weight_gain'; // Added fcr values path
+
+//medicines
+  static const String medicines = 'medicines'; // Added medicines path
+  // flockMedications
+  static const String flockMedications =
+      'flock_medications'; // Added flock medications path
+
+  //expenses
+  static const String expenses = 'expenses'; // Added expenses path
 }

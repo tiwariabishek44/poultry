@@ -6,6 +6,8 @@ class BatchResponseModel {
   final int initialFlockCount; // Required
   final int currentFlockCount; // Required
   final int totalDeath; // Required
+  final int totalSold; // Required
+  final double totalWeight; // Required
   final String startingDate; // Required
   final String? retireDate; // Optional as batch might be ongoing
   final String stage; // Required
@@ -18,6 +20,8 @@ class BatchResponseModel {
     required this.initialFlockCount,
     required this.currentFlockCount,
     required this.totalDeath,
+    required this.totalSold,
+    required this.totalWeight,
     required this.startingDate,
     this.retireDate,
     required this.stage,
@@ -33,6 +37,8 @@ class BatchResponseModel {
       initialFlockCount: json['initialFlockCount'] ?? 0, // Default for required
       currentFlockCount: json['currentFlockCount'] ?? 0, // Default for required
       totalDeath: json['totalDeath'] ?? 0, // Default for required
+      totalSold: json['totalSold'] ?? 0, // Default for required
+      totalWeight: json['totalWeight'] ?? 0.0, // Default for required
       startingDate: json['startingDate'] ?? '', // Default for required
       retireDate: json['retireDate'], // Optional field
       stage: json['stage'] ?? '', // Default for required
@@ -47,6 +53,8 @@ class BatchResponseModel {
       'initialFlockCount': initialFlockCount,
       'currentFlockCount': currentFlockCount,
       'totalDeath': totalDeath,
+      'totalSold': totalSold,
+      'totalWeight': totalWeight,
       'startingDate': startingDate,
       'retireDate': retireDate,
       'stage': stage,

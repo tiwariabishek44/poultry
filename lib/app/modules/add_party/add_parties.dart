@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/add_party/party_add_controller.dart';
-import 'package:poultry/app/modules/parties_detail/parties_controller.dart';
-import 'package:poultry/app/widget/custom_input_field.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 
 class AddPartyPage extends StatelessWidget {
   AddPartyPage({super.key});
@@ -16,373 +12,433 @@ class AddPartyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Add New Party',
-          style: GoogleFonts.notoSansDevanagari(
-            color: Colors.white,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: AppColors.primaryColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(LucideIcons.chevronLeft, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-      ),
+      backgroundColor: Colors.grey[100],
+      appBar: _buildAppBar(),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(5.w),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // _buildPartyTypeSelection(),
-                // SizedBox(height: 3.h),
-                // Obx(() {
-                //   if (controller.selectedPartyType.value == 'customer') {
-                //     return Container(
-                //       child: Text(
-                //         'जसलाई हामी अण्डा बेच्दछौं',
-                //         style: GoogleFonts.notoSansDevanagari(
-                //           fontSize: 17.sp,
-                //           fontWeight: FontWeight.w500,
-                //         ),
-                //       ),
-                //     );
-                //   } else if (controller.selectedPartyType.value == 'supplier') {
-                //     return Container(
-                //       child: Text(
-                //         'जसबाट हामी फार्मको लागि सामान किन्छौं',
-                //         style: GoogleFonts.notoSansDevanagari(
-                //           fontSize: 17.sp,
-                //           fontWeight: FontWeight.w500,
-                //         ),
-                //       ),
-                //     );
-                //   } else {
-                //     return Container();
-                //   }
-                // }),
-                SizedBox(height: 3.h),
-                _buildRequiredInfo(),
-                SizedBox(height: 3.h),
-                // _buildOptionalInfo(),
-                SizedBox(height: 3.h),
-                _buildOpeningBalance(),
-                SizedBox(height: 4.h),
-                _buildSubmitButton(),
-              ],
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildPartyTypeSelection(),
+                  SizedBox(height: 20),
+                  _buildRequiredInfo(),
+                  SizedBox(height: 20),
+                  _buildOpeningBalance(),
+                  SizedBox(height: 32),
+                  _buildSubmitButton(),
+                  SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      backgroundColor: Colors.white,
+      toolbarHeight: 70, // Taller AppBar for better visibility
+      leading: IconButton(
+        icon: Icon(LucideIcons.arrowLeft, color: Colors.black, size: 28),
+        onPressed: () => Get.back(),
+      ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'नयाँ पार्टी थप्नुहोस्',
+            style: GoogleFonts.notoSansDevanagari(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          Text(
+            'Add New Party',
+            style: GoogleFonts.notoSans(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPartyTypeSelection() {
     return Container(
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.dividerColor),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
       ),
-      padding: EdgeInsets.all(4.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Select Party Type  *',
-            style: GoogleFonts.notoSansDevanagari(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Icon(LucideIcons.users, size: 24, color: Colors.blue[700]),
+              SizedBox(width: 12),
+              Text(
+                'पार्टीको प्रकार छान्नुहोस्',
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 2.h),
+          SizedBox(height: 20),
           Obx(() => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ChoiceChip(
-                    label: Text(
-                      'Supplier',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 16.sp,
-                        color: controller.selectedPartyType.value == 'supplier'
-                            ? Colors.white
-                            : AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Expanded(
+                    child: _buildTypeCard(
+                      title: 'सप्लायर',
+                      subtitle: 'Supplier',
+                      icon: LucideIcons.truck,
+                      isSelected:
+                          controller.selectedPartyType.value == 'supplier',
+                      onTap: () =>
+                          controller.selectedPartyType.value = 'supplier',
                     ),
-                    selected: controller.selectedPartyType.value == 'supplier',
-                    onSelected: (selected) {
-                      if (selected) {
-                        controller.selectedPartyType.value = 'supplier';
-                      }
-                    },
-                    selectedColor: AppColors.primaryColor,
-                    backgroundColor: const Color.fromARGB(255, 217, 217, 217),
                   ),
-                  ChoiceChip(
-                    label: Text(
-                      'Customer',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 16.sp,
-                        color: controller.selectedPartyType.value == 'customer'
-                            ? Colors.white
-                            : AppColors.textPrimary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: _buildTypeCard(
+                      title: 'ग्राहक',
+                      subtitle: 'Customer',
+                      icon: LucideIcons.users,
+                      isSelected:
+                          controller.selectedPartyType.value == 'customer',
+                      onTap: () =>
+                          controller.selectedPartyType.value = 'customer',
                     ),
-                    selected: controller.selectedPartyType.value == 'customer',
-                    onSelected: (selected) {
-                      if (selected) {
-                        controller.selectedPartyType.value = 'customer';
-                      }
-                    },
-                    selectedColor: AppColors.primaryColor,
-                    backgroundColor: const Color.fromARGB(255, 217, 217, 217),
                   ),
                 ],
               )),
+          SizedBox(height: 16),
+          Obx(() => Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[100]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      LucideIcons.info,
+                      size: 24,
+                      color: Colors.blue[700],
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        controller.selectedPartyType.value == 'supplier'
+                            ? 'जसबाट हामी फार्मको लागि सामान किन्छौं'
+                            : 'जसलाई हामी सामान बेच्दछौं',
+                        style: GoogleFonts.notoSansDevanagari(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTypeCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[50] : Colors.white,
+          border: Border.all(
+            color: isSelected
+                ? Colors.blue[700]!
+                : const Color.fromARGB(255, 130, 130, 130)!,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.notoSansDevanagari(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.blue[700] : Colors.black87,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: GoogleFonts.notoSans(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildRequiredInfo() {
     return Container(
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.dividerColor),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
       ),
-      padding: EdgeInsets.all(4.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'General Information *',
-            style: GoogleFonts.notoSansDevanagari(
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Icon(LucideIcons.clipboardList,
+                  size: 24, color: Colors.blue[700]),
+              SizedBox(width: 12),
+              Text(
+                'आवश्यक जानकारी',
+                style: GoogleFonts.notoSansDevanagari(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 2.h),
-          CustomInputField(
-            label: 'Party Name *',
+          SizedBox(height: 20),
+          _buildInputField(
+            label: 'पार्टीको नाम',
+            englishLabel: 'Party Name',
             hint: 'नाम लेख्नुहोस्',
             controller: controller.nameController,
             validator: controller.validateName,
-            prefix: Icon(LucideIcons.user, color: AppColors.primaryColor),
+            icon: LucideIcons.user,
           ),
-          SizedBox(height: 2.h),
-          CustomInputField(
-            label: 'Phone Number *',
+          SizedBox(height: 20),
+          _buildInputField(
+            label: 'फोन नम्बर',
+            englishLabel: 'Phone Number',
             hint: '98XXXXXXXX',
             controller: controller.phoneController,
             validator: controller.validatePhone,
-            prefix: Icon(LucideIcons.phone, color: AppColors.primaryColor),
+            icon: LucideIcons.phone,
             keyboardType: TextInputType.phone,
-            isNumber: true,
           ),
-          SizedBox(height: 2.h),
-          CustomInputField(
-            label: 'Address *',
+          SizedBox(height: 20),
+          _buildInputField(
+            label: 'ठेगाना',
+            englishLabel: 'Address',
             hint: 'ठेगाना लेख्नुहोस्',
             controller: controller.addressController,
             validator: controller.validateAddress,
-            prefix: Icon(LucideIcons.mapPin, color: AppColors.primaryColor),
+            icon: LucideIcons.mapPin,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOptionalInfo() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.dividerColor),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 4.w),
-      child: _CustomExpansionTile(
-        title: Text(
-          'Additional Information (Optional)',
-          style: GoogleFonts.notoSansDevanagari(
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w500,
-          ),
+  Widget _buildInputField({
+    required String label,
+    required String englishLabel,
+    required String hint,
+    required TextEditingController controller,
+    required String? Function(String?)? validator,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.notoSansDevanagari(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            Text(
+              ' *',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 16,
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              '($englishLabel)',
+              style: GoogleFonts.notoSans(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
         ),
-        children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: 2.h),
-            child: Column(
-              children: [
-                CustomInputField(
-                  label: 'Company Name',
-                  hint: 'कम्पनीको नाम लेख्नुहोस्',
-                  controller: controller.companyController,
-                  prefix: Icon(LucideIcons.building2,
-                      color: AppColors.primaryColor),
-                ),
-                SizedBox(height: 2.h),
-                CustomInputField(
-                  label: 'Email',
-                  hint: 'ईमेल लेख्नुहोस्',
-                  controller: controller.emailController,
-                  prefix: Icon(LucideIcons.mail, color: AppColors.primaryColor),
-                ),
-                SizedBox(height: 2.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomInputField(
-                        keyboardType: TextInputType.number,
-                        label: 'Tax Number',
-                        hint: 'PAN/VAT Number',
-                        controller: controller.taxNumberController,
-                        prefix: Icon(LucideIcons.fileText,
-                            color: AppColors.primaryColor),
-                        isNumber: true,
-                      ),
-                    ),
-                    SizedBox(width: 3.w),
-                  ],
-                ),
-                SizedBox(height: 2.h),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'कर प्रकार',
-                      style: GoogleFonts.notoSansDevanagari(
-                        fontSize: 16.sp,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 0.5.h),
-                    Obx(() => Row(
-                          children: [
-                            Radio(
-                              value: true,
-                              groupValue: controller.isTaxPan.value,
-                              onChanged: (value) =>
-                                  controller.isTaxPan.value = value as bool,
-                              activeColor: AppColors.primaryColor,
-                            ),
-                            Text(
-                              'PAN',
-                              style: GoogleFonts.notoSansDevanagari(
-                                fontSize: 14.sp,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            SizedBox(width: 3.w),
-                            Radio(
-                              value: false,
-                              groupValue: controller.isTaxPan.value,
-                              onChanged: (value) =>
-                                  controller.isTaxPan.value = value as bool,
-                              activeColor: AppColors.primaryColor,
-                            ),
-                            Text(
-                              'VAT',
-                              style: GoogleFonts.notoSansDevanagari(
-                                fontSize: 14.sp,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        )),
-                  ],
-                ),
-              ],
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          keyboardType: keyboardType,
+          style: GoogleFonts.notoSansDevanagari(
+            fontSize: 16,
+            color: Colors.black,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.notoSansDevanagari(
+              fontSize: 16,
+              color: Colors.grey[400],
+            ),
+            prefixIcon: Icon(icon, color: Colors.blue[700], size: 24),
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildOpeningBalance() {
     return Container(
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.dividerColor),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
       ),
-      padding: EdgeInsets.all(4.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(() => Text(
-                controller.selectedPartyType.value == 'supplier'
-                    ? 'Opening Balance (तिर्न बाँकी)'
-                    : 'Opening Balance (पाउन बाँकी)',
-                style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              )),
-          SizedBox(height: 2.h),
-          CustomInputField(
-            hint: 'रकम रु.',
-            controller: controller.creditAmountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            isNumber: true,
-            label: '',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeButton({
-    required IconData icon,
-    required String title,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 2.h),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryColor : Colors.white,
-            border: Border.all(
-              color:
-                  isSelected ? AppColors.primaryColor : AppColors.dividerColor,
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
+          Row(
             children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.white : AppColors.primaryColor,
-                size: 24.sp,
-              ),
-              SizedBox(height: 1.h),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.notoSansDevanagari(
-                  fontSize: 14.sp,
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              Icon(LucideIcons.wallet, size: 24, color: Colors.blue[700]),
+              SizedBox(width: 12),
+              Obx(() => Text(
+                    controller.selectedPartyType.value == 'supplier'
+                        ? 'सुरुवाती बाँकी (तिर्न बाँकी)'
+                        : 'सुरुवाती बाँकी (पाउन बाँकी)',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  )),
             ],
           ),
-        ),
+          SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange[100]!),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.alertCircle,
+                  size: 24,
+                  color: Colors.orange[700],
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'यदि कुनै रकम बाँकी छैन भने खाली छोड्नुहोस्',
+                    style: GoogleFonts.notoSansDevanagari(
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+          TextFormField(
+            controller: controller.creditAmountController,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            style: GoogleFonts.notoSans(
+              fontSize: 18,
+              color: Colors.black,
+            ),
+            decoration: InputDecoration(
+              hintText: 'रकम रु.',
+              hintStyle: GoogleFonts.notoSansDevanagari(
+                fontSize: 16,
+                color: Colors.grey[400],
+              ),
+              prefixIcon: Icon(
+                LucideIcons.banknote,
+                color: Colors.blue[700],
+                size: 24,
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -390,131 +446,31 @@ class AddPartyPage extends StatelessWidget {
   Widget _buildSubmitButton() {
     return Container(
       width: double.infinity,
-      height: 6.h,
+      height: 56,
       child: ElevatedButton.icon(
         onPressed: () async {
-          // Dismiss keyboard first
           FocusManager.instance.primaryFocus?.unfocus();
-
-          // Small delay to ensure keyboard is dismissed
           await Future.delayed(Duration(milliseconds: 100));
-
           controller.createParty();
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryColor,
+          backgroundColor: Colors.blue[700],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 0,
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         ),
-        icon: Icon(LucideIcons.userPlus, color: Colors.white),
+        icon: Icon(LucideIcons.userPlus, color: Colors.white, size: 24),
         label: Text(
-          'Save ',
+          'पार्टी सेभ गर्नुहोस्',
           style: GoogleFonts.notoSansDevanagari(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w500,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CustomExpansionTile extends StatefulWidget {
-  final Widget title;
-  final List<Widget> children;
-
-  const _CustomExpansionTile({
-    required this.title,
-    required this.children,
-  });
-
-  @override
-  _CustomExpansionTileState createState() => _CustomExpansionTileState();
-}
-
-class _CustomExpansionTileState extends State<_CustomExpansionTile>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _heightFactor;
-  bool _isExpanded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _heightFactor = _controller.drive(CurveTween(curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _handleTap() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-      if (_isExpanded) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        InkWell(
-          onTap: _handleTap,
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 2.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(child: widget.title),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.primaryColor,
-                      width: 2,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      _isExpanded ? Icons.remove : Icons.add,
-                      size: 16,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        AnimatedBuilder(
-          animation: _controller.view,
-          builder: (BuildContext context, Widget? child) {
-            return ClipRect(
-              child: Align(
-                heightFactor: _heightFactor.value,
-                child: child,
-              ),
-            );
-          },
-          child: Column(children: widget.children),
-        ),
-      ],
     );
   }
 }

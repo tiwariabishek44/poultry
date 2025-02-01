@@ -20,7 +20,6 @@ class AddBatchController extends GetxController {
   // Form controllers
   final batchNameController = TextEditingController();
   final initialFlockController = TextEditingController();
-  final deathCountController = TextEditingController();
   final yearController = TextEditingController();
   final monthController = TextEditingController();
   final dayController = TextEditingController();
@@ -35,7 +34,6 @@ class AddBatchController extends GetxController {
   void onInit() {
     super.onInit();
     // Initialize death count to 0
-    deathCountController.text = '0';
     updateRemainingFlock();
   }
 
@@ -43,7 +41,6 @@ class AddBatchController extends GetxController {
   void onClose() {
     batchNameController.dispose();
     initialFlockController.dispose();
-    deathCountController.dispose();
     yearController.dispose();
     monthController.dispose();
     dayController.dispose();
@@ -52,8 +49,7 @@ class AddBatchController extends GetxController {
 
   void updateRemainingFlock() {
     int initialFlock = int.tryParse(initialFlockController.text) ?? 0;
-    int deathCount = int.tryParse(deathCountController.text) ?? 0;
-    remainingFlock.value = initialFlock - deathCount;
+    remainingFlock.value = initialFlock;
   }
 
   void _showLoadingDialog() {
@@ -91,7 +87,7 @@ class AddBatchController extends GetxController {
         'batchName': batchNameController.text,
         'initialFlockCount': int.parse(initialFlockController.text),
         'currentFlockCount': remainingFlock.value,
-        'totalDeath': int.parse(deathCountController.text),
+        'totalDeath': 0,
         'startingDate': formattedDate,
         'stage': '', // Empty stage as requested
         'adminId': adminId,
@@ -103,8 +99,6 @@ class AddBatchController extends GetxController {
       Get.back(); // Close loading dialog
 
       if (response.status == ApiStatus.SUCCESS) {
-        Get.put(ActiveBatchStreamController()).refreshStreams();
-
         CustomDialog.showSuccess(
           message: 'Batch ${response.response?.batchName} created successfully',
           onConfirm: () => Get.back(),
@@ -130,7 +124,6 @@ class AddBatchController extends GetxController {
   void _clearForm() {
     batchNameController.clear();
     initialFlockController.clear();
-    deathCountController.text = '0';
     yearController.clear();
     monthController.clear();
     dayController.clear();

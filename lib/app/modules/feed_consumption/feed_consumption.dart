@@ -6,6 +6,7 @@ import 'package:poultry/app/constant/app_color.dart';
 import 'package:poultry/app/modules/feed_consumption/feed_consumption_controller.dart';
 import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_input_field.dart';
+import 'package:poultry/app/widget/date_select_widget.dart';
 import 'package:poultry/app/widget/feed_selection.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -55,19 +56,8 @@ class _FeedConsumptionPageState extends State<FeedConsumptionPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Select Batch (बैच चयन गर्नुहोस्)',
-                  style: GoogleFonts.notoSansDevanagari(
-                    fontSize: 16.sp,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 1.h),
                 BatchesDropDown(),
                 SizedBox(height: 3.h),
-
-                // Feed Type Selection
 
                 FeedSelectionGrid(),
                 SizedBox(height: 3.h),
@@ -89,18 +79,26 @@ class _FeedConsumptionPageState extends State<FeedConsumptionPage> {
                   },
                 ),
                 SizedBox(height: 4.h),
+                DateSelectorWidget(
+                  label: 'Date (मिति)',
+                  showCard: false,
+                  hint: 'Choose a date',
+                ),
+                SizedBox(height: 3.h),
 
                 // Submit Button
                 SizedBox(
                   width: double.infinity,
                   height: 6.h,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      FocusManager.instance.primaryFocus?.unfocus();
+
+                      // Small delay to ensure keyboard is dismissed
+                      await Future.delayed(Duration(milliseconds: 100));
                       if (formKey.currentState!.validate()) {
                         feedConsumptionController.createFeedConsumption(
                           quantityKg: quantityController.text,
-
-                          feedBrand: '', // Empty as we're not using it
                         );
                       }
                     },

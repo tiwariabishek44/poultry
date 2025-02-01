@@ -3,9 +3,8 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:poultry/app/constant/app_color.dart';
-import 'package:poultry/app/modules/monthly_report/monthly_report_controller.dart';
-import 'package:poultry/app/widget/filter_dialouge.dart';
-import 'package:poultry/app/widget/monthly_report/empty_report_widget.dart';
+import 'package:poultry/app/modules/batch_managemnt/batch_report_controller.dart';
+import 'package:poultry/app/widget/empty_report_widget.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:intl/intl.dart';
 
@@ -15,17 +14,13 @@ class MortalityDailyRecords extends StatefulWidget {
 }
 
 class _MortalityDailyRecordsState extends State<MortalityDailyRecords> {
-  final controller = Get.find<MonthlyReportController>();
-  final filterController = Get.find<FilterController>();
+  final controller = Get.find<BatchReportController>();
   final numberFormat = NumberFormat('#,##,##0');
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final selectedBatchName =
-          filterController.selectedBatch.value?.batchName ?? 'All';
-      final selectedMonth = filterController.selectedDate.value.month;
-      final selectedYear = filterController.selectedDate.value.year;
+      final selectedBatchName = 'All';
 
       if (controller.isLoading.value) {
         return Center(
@@ -40,8 +35,7 @@ class _MortalityDailyRecordsState extends State<MortalityDailyRecords> {
       if (controller.mortalities.isEmpty) {
         return EmptyStateWidget(
           title: 'No records found',
-          message:
-              'Batch: $selectedBatchName\nDate: $selectedMonth-$selectedYear',
+          message: 'Batch: $selectedBatchName ',
           icon: LucideIcons.alertCircle,
         );
       }

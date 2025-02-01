@@ -1,436 +1,219 @@
-// import 'dart:async';
-// import 'dart:developer';
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:get/get.dart';
-// import 'package:intl/intl.dart';
-// import 'package:nepali_date_picker/nepali_date_picker.dart';
-// import 'package:poultry/app/config/firebase_path.dart';
-// import 'package:poultry/app/model/batch_response_model.dart';
-// import 'package:poultry/app/modules/login%20/login_controller.dart';
-
-// class ActiveBatchStreamController extends GetxController {
-//   static ActiveBatchStreamController get instance => Get.find();
-
-//   final _firestore = FirebaseFirestore.instance;
-//   final _loginController = Get.find<LoginController>();
-//   final _numberFormat = NumberFormat("#,##,###.#");
-
-//   // Stream controllers
-//   final _batchesController =
-//       StreamController<List<BatchResponseModel>>.broadcast();
-//   final _statsController =
-//       StreamController<Map<String, Map<String, dynamic>>>.broadcast();
-
-//   // Public streams
-//   Stream<List<BatchResponseModel>> get batches => _batchesController.stream;
-//   Stream<Map<String, Map<String, dynamic>>> get batchStats =>
-//       _statsController.stream;
-
-//   // Store subscriptions for cleanup
-//   List<StreamSubscription> _subscriptions = [];
-
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     _initializeStreams();
-//   }
-
-//   // 5. Add proper disposal
-//   void _disposeSubscriptions() {
-//     for (var subscription in _subscriptions) {
-//       subscription.cancel();
-//     }
-//     _subscriptions.clear();
-//   }
-
-//   void refreshStreams() {
-//     // Cancel existing subscriptions
-//     _disposeSubscriptions();
-//     _initializeStreams();
-//   }
-
-//   void _initializeStreams() {
-//     final adminId = _loginController.adminUid;
-
-//     if (adminId == null) {
-//       log("Admin ID not found");
-//       _batchesController.add([]);
-//       _statsController.add({});
-//       return;
-//     }
-
-//     // Listen to active batches
-//     final batchSubscription = _firestore
-//         .collection(FirebasePath.batches)
-//         .where('adminId', isEqualTo: adminId)
-//         .where('isActive', isEqualTo: true)
-//         .snapshots()
-//         .listen((snapshot) {
-//       try {
-//         final batches = snapshot.docs
-//             .map((doc) =>
-//                 BatchResponseModel.fromJson(doc.data(), batchId: doc.id))
-//             .toList();
-
-//         _batchesController.add(batches);
-//         _updateStatsForBatches(batches);
-//       } catch (e) {
-//         log("Error processing batch data: $e");
-//         _batchesController.addError("Failed to process batch data");
-//       }
-//     }, onError: (error) {
-//       log("Error in batch subscription: $error");
-//       _batchesController.addError(error);
-//     });
-
-//     _subscriptions.add(batchSubscription);
-//   }
-
-//   void _updateStatsForBatches(List<BatchResponseModel> batches) {
-//     final today = NepaliDateTime.now();
-//     final yearMonth = '${today.year}-${today.month.toString().padLeft(2, '0')}';
-
-//     // Cancel existing stat subscriptions
-//     _subscriptions.forEach((sub) => sub.cancel());
-//     _subscriptions = [];
-
-//     final Map<String, Map<String, dynamic>> currentStats = {};
-
-//     for (var batch in batches) {
-//       if (batch.batchId == null) continue;
-
-//       currentStats[batch.batchId!] = {
-//         'totalEggs': 0,
-//         'totalCrates': 0.0,
-//         'remainingEggs': 0,
-//         'totalFeed': 0.0,
-//         'totalDeaths': 0,
-//       };
-
-//       // Listen to egg production with new calculation
-//       final eggSubscription = _firestore
-//           .collection(FirebasePath.eggCollections)
-//           .where('batchId', isEqualTo: batch.batchId)
-//           .where('yearMonth', isEqualTo: yearMonth)
-//           .snapshots()
-//           .listen((snapshot) {
-//         try {
-//           int totalEggs = 0;
-//           int totalRemaining = 0;
-
-//           for (var doc in snapshot.docs) {
-//             // Calculate eggs from full crates
-//             final crates = (doc.data()['totalCrates'] as num?)?.toInt() ?? 0;
-//             totalEggs += crates * 30;
-
-//             // Add remaining eggs
-//             final remaining =
-//                 (doc.data()['remainingEggs'] as num?)?.toInt() ?? 0;
-//             totalRemaining += remaining;
-//           }
-
-//           // Add remaining eggs to total
-//           totalEggs += totalRemaining;
-
-//           // Calculate final crate statistics
-//           final double totalCrates = totalEggs / 30;
-//           final int finalRemaining = totalEggs % 30;
-
-//           currentStats[batch.batchId!]?.addAll({
-//             'totalEggs': totalEggs,
-//             'totalCrates': totalCrates,
-//             'remainingEggs': finalRemaining,
-//           });
-
-//           _statsController.add(Map.from(currentStats));
-//         } catch (e) {
-//           log("Error processing egg data: $e");
-//         }
-//       }, onError: (error) {
-//         log("Error in egg subscription: $error");
-//       });
-
-//       // Listen to feed consumption
-//       final feedSubscription = _firestore
-//           .collection(FirebasePath.feedConsumption)
-//           .where('batchId', isEqualTo: batch.batchId)
-//           .where('yearMonth', isEqualTo: yearMonth)
-//           .snapshots()
-//           .listen((snapshot) {
-//         try {
-//           double totalFeed = 0;
-//           for (var doc in snapshot.docs) {
-//             totalFeed += (doc.data()['quantityKg'] as num?)?.toDouble() ?? 0;
-//           }
-//           currentStats[batch.batchId!]?['totalFeed'] = totalFeed;
-//           _statsController.add(Map.from(currentStats));
-//         } catch (e) {
-//           log("Error processing feed data: $e");
-//         }
-//       }, onError: (error) {
-//         log("Error in feed subscription: $error");
-//       });
-
-//       // Listen to death records
-//       final deathSubscription = _firestore
-//           .collection(FirebasePath.flockDeaths)
-//           .where('batchId', isEqualTo: batch.batchId)
-//           .where('yearMonth', isEqualTo: yearMonth)
-//           .snapshots()
-//           .listen((snapshot) {
-//         try {
-//           int totalDeaths = 0;
-//           for (var doc in snapshot.docs) {
-//             totalDeaths += (doc.data()['deathCount'] as num?)?.toInt() ?? 0;
-//           }
-//           currentStats[batch.batchId!]?['totalDeaths'] = totalDeaths;
-//           _statsController.add(Map.from(currentStats));
-//         } catch (e) {
-//           log("Error processing death data: $e");
-//         }
-//       }, onError: (error) {
-//         log("Error in death subscription: $error");
-//       });
-
-//       _subscriptions
-//           .addAll([eggSubscription, feedSubscription, deathSubscription]);
-//     }
-
-//     // Initial stats update
-//     _statsController.add(currentStats);
-//   }
-
-//   // Helper method for general number formatting
-//   String formatNumber(num value) => _numberFormat.format(value);
-
-//   @override
-//   void onClose() {
-//     for (var subscription in _subscriptions) {
-//       subscription.cancel();
-//     }
-//     _batchesController.close();
-//     _statsController.close();
-//     super.onClose();
-//   }
-// }
-
 import 'dart:async';
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:nepali_date_picker/nepali_date_picker.dart';
 import 'package:poultry/app/config/firebase_path.dart';
 import 'package:poultry/app/model/batch_response_model.dart';
+import 'package:poultry/app/model/expense_reposnse_model.dart';
+import 'package:poultry/app/model/feed_consumption_response.dart';
+import 'package:poultry/app/model/purchase_repsonse_model.dart';
 import 'package:poultry/app/modules/login%20/login_controller.dart';
+import 'package:poultry/app/repository/daily_weight_gain._repository.dart';
+import 'package:rxdart/rxdart.dart' as rxdart;
 
 class ActiveBatchStreamController extends GetxController {
-  static ActiveBatchStreamController get instance => Get.find();
-
   final _firestore = FirebaseFirestore.instance;
   final _loginController = Get.find<LoginController>();
   final _numberFormat = NumberFormat("#,##,###.#");
 
-  final _batchesController =
-      StreamController<List<BatchResponseModel>>.broadcast();
-  final _statsController =
-      StreamController<Map<String, Map<String, dynamic>>>.broadcast();
-
-  Stream<List<BatchResponseModel>> get batches => _batchesController.stream;
-  Stream<Map<String, Map<String, dynamic>>> get batchStats =>
-      _statsController.stream;
-
-  List<StreamSubscription> _subscriptions = [];
-
-  @override
-  void onInit() {
-    super.onInit();
-    _initializeStreams();
-  }
-
-  void _disposeSubscriptions() {
-    for (var subscription in _subscriptions) {
-      subscription.cancel();
-    }
-    _subscriptions.clear();
-  }
-
-  void refreshStreams() {
-    _disposeSubscriptions();
-    _initializeStreams();
-  }
-
-  void _initializeStreams() {
-    final adminId = _loginController.adminUid;
-
-    if (adminId == null) {
-      log("Admin ID not found");
-      _batchesController.add([]);
-      _statsController.add({});
-      return;
-    }
-
-    final batchSubscription = _firestore
+  // Main stream for active batches
+  Stream<List<BatchResponseModel>> get activeBatches {
+    return _firestore
         .collection(FirebasePath.batches)
-        .where('adminId', isEqualTo: adminId)
+        .where('adminId', isEqualTo: _loginController.adminUid)
         .where('isActive', isEqualTo: true)
         .snapshots()
-        .listen((snapshot) {
-      try {
-        final batches = snapshot.docs
-            .map((doc) =>
-                BatchResponseModel.fromJson(doc.data(), batchId: doc.id))
-            .toList();
-
-        _batchesController.add(batches);
-        _updateStatsForBatches(batches);
-      } catch (e) {
-        log("Error processing batch data: $e");
-        _batchesController.addError("Failed to process batch data");
-      }
-    }, onError: (error) {
-      log("Error in batch subscription: $error");
-      _batchesController.addError(error);
+        .map((snapshot) {
+      return snapshot.docs
+          .map(
+              (doc) => BatchResponseModel.fromJson(doc.data(), batchId: doc.id))
+          .toList();
     });
-
-    _subscriptions.add(batchSubscription);
   }
 
-  void _updateStatsForBatches(List<BatchResponseModel> batches) {
-    final today = NepaliDateTime.now();
-    final yearMonth = '${today.year}-${today.month.toString().padLeft(2, '0')}';
+  // Stream for total costing (purchase + expense) filtered by active batch
+  Stream<double> get totalCostStream {
+    return activeBatches.switchMap((batches) {
+      if (batches.isEmpty)
+        return Stream.value(0.0); // Return 0 if no active batch
 
-    _subscriptions.forEach((sub) => sub.cancel());
-    _subscriptions = [];
+      final batchId = batches.first.batchId; // Get the current batch ID
+      return rxdart.Rx.combineLatest2(
+        _getTotalPurchasesStream(batchId!),
+        _getTotalExpensesStream(batchId),
+        (double totalPurchases, double totalExpenses) {
+          return totalPurchases + totalExpenses;
+        },
+      );
+    });
+  }
 
-    final Map<String, Map<String, dynamic>> currentStats = {};
+  // Stream to calculate total purchases filtered by batchId
+  Stream<double> _getTotalPurchasesStream(String batchId) {
+    return _firestore
+        .collection('purchases') // Replace with your actual collection name
+        .where('batchId', isEqualTo: batchId)
+        .snapshots()
+        .map((snapshot) {
+      double totalPurchases = 0.0;
+      for (var doc in snapshot.docs) {
+        final purchase =
+            PurchaseResponseModel.fromJson(doc.data(), purchaseId: doc.id);
+        totalPurchases += purchase
+            .totalAmount; // Assuming totalAmount is already calculated in your model
+      }
+      return totalPurchases;
+    });
+  }
 
-    for (var batch in batches) {
-      if (batch.batchId == null) continue;
+  // Stream to calculate total expenses filtered by batchId
+  Stream<double> _getTotalExpensesStream(String batchId) {
+    return _firestore
+        .collection('expenses') // Replace with your actual collection name
+        .where('batchId', isEqualTo: batchId)
+        .snapshots()
+        .map((snapshot) {
+      double totalExpenses = 0.0;
+      for (var doc in snapshot.docs) {
+        final expense =
+            ExpenseResponseModel.fromJson(doc.data(), expenseId: doc.id);
+        totalExpenses += expense
+            .amount; // Assuming amount is directly available in your model
+      }
+      return totalExpenses;
+    });
+  }
 
-      currentStats[batch.batchId!] = {
-        'totalEggs': 0,
-        'totalCrates': 0.0,
-        'remainingEggs': 0,
-        'totalFeed': 0.0,
-        'totalDeaths': 0,
-        // Adding category-wise totals
-        'totalLargePlusEggs': 0,
-        'totalLargeEggs': 0,
-        'totalMediumEggs': 0,
-        'totalSmallEggs': 0,
-        'totalCrackEggs': 0,
-        'totalWasteEggs': 0,
-      };
+  Stream<Map<String, double>> get feedConsumptionByTypeStream {
+    return activeBatches.switchMap((batches) {
+      if (batches.isEmpty) {
+        return Stream.value({'B-0': 0.0, 'B-1': 0.0, 'B-2': 0.0});
+      }
 
-      // Listen to egg production with new calculation
-      final eggSubscription = _firestore
-          .collection(FirebasePath.eggCollections)
-          .where('batchId', isEqualTo: batch.batchId)
-          .where('yearMonth', isEqualTo: yearMonth)
-          .snapshots()
-          .listen((snapshot) {
-        try {
-          int totalLargePlusEggs = 0;
-          int totalLargeEggs = 0;
-          int totalMediumEggs = 0;
-          int totalSmallEggs = 0;
-          int totalCrackEggs = 0;
-          int totalWasteEggs = 0;
+      final batchId = batches.first.batchId;
 
-          for (var doc in snapshot.docs) {
-            final data = doc.data();
-            totalLargePlusEggs +=
-                (data['totalLargePlusEggs'] as num?)?.toInt() ?? 0;
-            totalLargeEggs += (data['totalLargeEggs'] as num?)?.toInt() ?? 0;
-            totalMediumEggs += (data['totalMediumEggs'] as num?)?.toInt() ?? 0;
-            totalSmallEggs += (data['totalSmallEggs'] as num?)?.toInt() ?? 0;
-            totalCrackEggs += (data['totalCrackEggs'] as num?)?.toInt() ?? 0;
-            totalWasteEggs += (data['totalWasteEggs'] as num?)?.toInt() ?? 0;
-          }
-
-          final totalEggs = totalLargePlusEggs +
-              totalLargeEggs +
-              totalMediumEggs +
-              totalSmallEggs +
-              totalCrackEggs +
-              totalWasteEggs;
-
-          final double totalCrates = totalEggs / 30;
-          final int finalRemaining = totalEggs % 30;
-
-          currentStats[batch.batchId!]?.addAll({
-            'totalEggs': totalEggs,
-            'totalCrates': totalCrates,
-            'remainingEggs': finalRemaining,
-            'totalLargePlusEggs': totalLargePlusEggs,
-            'totalLargeEggs': totalLargeEggs,
-            'totalMediumEggs': totalMediumEggs,
-            'totalSmallEggs': totalSmallEggs,
-            'totalCrackEggs': totalCrackEggs,
-            'totalWasteEggs': totalWasteEggs,
-          });
-
-          _statsController.add(Map.from(currentStats));
-        } catch (e) {
-          log("Error processing egg data: $e");
-        }
-      }, onError: (error) {
-        log("Error in egg subscription: $error");
-      });
-
-      // Feed consumption subscription remains the same
-      final feedSubscription = _firestore
+      return _firestore
           .collection(FirebasePath.feedConsumption)
-          .where('batchId', isEqualTo: batch.batchId)
-          .where('yearMonth', isEqualTo: yearMonth)
+          .where('batchId', isEqualTo: batchId)
           .snapshots()
-          .listen((snapshot) {
-        try {
-          double totalFeed = 0;
-          for (var doc in snapshot.docs) {
-            totalFeed += (doc.data()['quantityKg'] as num?)?.toDouble() ?? 0;
-          }
-          currentStats[batch.batchId!]?['totalFeed'] = totalFeed;
-          _statsController.add(Map.from(currentStats));
-        } catch (e) {
-          log("Error processing feed data: $e");
-        }
-      });
+          .map((snapshot) {
+        // Initialize a map to hold total weights for each feed type
+        final feedTypeWeights = {
+          'B-0': 0.0,
+          'B-1': 0.0,
+          'B-2': 0.0,
+        };
 
-      // Death records subscription remains the same
-      final deathSubscription = _firestore
-          .collection(FirebasePath.flockDeaths)
-          .where('batchId', isEqualTo: batch.batchId)
-          .where('yearMonth', isEqualTo: yearMonth)
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final feedConsumption = FeedConsumptionResponseModel.fromJson(data,
+              consumptionId: doc.id);
+
+          // Accumulate the weight based on the feed type
+          if (feedTypeWeights.containsKey(feedConsumption.feedType)) {
+            feedTypeWeights[feedConsumption.feedType] =
+                (feedTypeWeights[feedConsumption.feedType] ?? 0) +
+                    feedConsumption.quantityKg;
+          }
+        }
+
+        // Return the map with total weights for each feed type
+        return feedTypeWeights;
+      });
+    });
+  }
+
+  Stream<Map<String, dynamic>> get weightGainStream {
+    return activeBatches.switchMap((batches) {
+      if (batches.isEmpty)
+        return Stream.value({
+          'totalWeightGain': 0.0,
+          'dailyAverageGain': 0.0,
+          'thisWeekWeight': List.filled(7, {'date': '', 'weight': 0.0})
+        });
+      final batchId = batches.first.batchId;
+
+      return _firestore
+          .collection(FirebasePath.dailyWeightGain)
+          .where('batchId', isEqualTo: batchId)
           .snapshots()
-          .listen((snapshot) {
-        try {
-          int totalDeaths = 0;
-          for (var doc in snapshot.docs) {
-            totalDeaths += (doc.data()['deathCount'] as num?)?.toInt() ?? 0;
-          }
-          currentStats[batch.batchId!]?['totalDeaths'] = totalDeaths;
-          _statsController.add(Map.from(currentStats));
-        } catch (e) {
-          log("Error processing death data: $e");
+          .map((snapshot) {
+        if (snapshot.docs.isEmpty)
+          return {
+            'totalWeightGain': 0.0,
+            'dailyAverageGain': 0.0,
+            'thisWeekWeight': List.filled(7, {'date': '', 'weight': 0.0})
+          };
+
+        // Convert all documents to DailyWeightGainResponseModel
+        final weightRecords = snapshot.docs
+            .map((doc) => DailyWeightGainResponseModel.fromJson(doc.data(),
+                weightGainId: doc.id))
+            .toList();
+
+        // Calculate total weight gain by summing all weight records
+        double totalWeightGain = 0.0;
+        for (var record in weightRecords) {
+          totalWeightGain += record.weight;
         }
+
+        // Calculate daily average gain
+        double dailyAverageGain = totalWeightGain / weightRecords.length;
+
+        // Calculate this week's weight
+        final now = NepaliDateTime.now();
+        final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+        final endOfWeek = startOfWeek.add(Duration(days: 6));
+
+        final weightMap = <String, double>{};
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final date = NepaliDateTime.parse(data['date']);
+          if (date.isAfter(startOfWeek) &&
+              date.isBefore(endOfWeek.add(Duration(days: 1)))) {
+            weightMap[date.toIso8601String().split('T').first] =
+                data['weight'].toDouble();
+          }
+        }
+
+        final thisWeekWeight = List<Map<String, dynamic>>.generate(7, (index) {
+          final date = startOfWeek
+              .add(Duration(days: index))
+              .toIso8601String()
+              .split('T')
+              .first;
+          final weight = weightMap[date] ?? 0.0;
+          return {'date': date, 'weight': weight};
+        });
+
+        return {
+          'totalWeightGain': totalWeightGain / 1000,
+          'dailyAverageGain': dailyAverageGain / 1000,
+          'thisWeekWeight': thisWeekWeight
+        };
       });
+    });
+  }
 
-      _subscriptions
-          .addAll([eggSubscription, feedSubscription, deathSubscription]);
-    }
+  // Mortality Rate Stream calculated from active batch
+  Stream<double> get mortalityRateStream {
+    return activeBatches.map((batches) {
+      if (batches.isEmpty) return 0.0;
+      final batch = batches.first;
 
-    _statsController.add(currentStats);
+      if (batch.initialFlockCount == 0) return 0.0;
+
+      return ((batch.initialFlockCount - batch.currentFlockCount) /
+              batch.initialFlockCount) *
+          100;
+    });
   }
 
   String formatNumber(num value) => _numberFormat.format(value);
 
   @override
   void onClose() {
-    _disposeSubscriptions();
-    _batchesController.close();
-    _statsController.close();
     super.onClose();
   }
 }

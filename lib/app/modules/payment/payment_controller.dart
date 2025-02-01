@@ -114,8 +114,8 @@ class PaymentController extends GetxController {
               ? ''
               : bankDetailsController.text,
           remarks: isCustomer.value
-              ? '$amount  recive from.   $partyName'
-              : '$amount  paid to.   $partyName',
+              ? 'Money Recive From    $partyName'
+              : 'Money Give To    $partyName',
           isMoneyReciving: isCustomer.value);
 
       Get.back(); // Close loading dialog

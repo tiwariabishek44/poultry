@@ -9,6 +9,7 @@ import 'package:poultry/app/modules/transction_main_screen/transction_controller
 import 'package:poultry/app/repository/salse_reposityro.dart';
 
 import 'package:poultry/app/service/api_client.dart';
+import 'package:poultry/app/widget/batch_drop_down.dart';
 import 'package:poultry/app/widget/custom_pop_up.dart';
 import 'package:poultry/app/widget/loading_State.dart';
 
@@ -16,6 +17,7 @@ class SalesController extends GetxController {
   static SalesController get instance => Get.find();
   final partyDetailController = Get.put(PartyController());
   final controller = Get.put(TransactionsController());
+  final selectedBatchController = Get.put(BatchesDropDownController());
 
   final _salesRepository = SalesRepository();
   final _loginController = Get.find<LoginController>();
@@ -94,6 +96,13 @@ class SalesController extends GetxController {
       return;
     }
 
+    if (selectedBatchController.selectedBatchId.value == null) {
+      CustomDialog.showError(
+        message: 'Please select a batch.',
+      );
+      return;
+    }
+
     _showLoadingDialog();
     // Generate remarks with party name and items
     final itemNames = selectedItems.map((item) => item.itemName).toList();
@@ -111,6 +120,7 @@ class SalesController extends GetxController {
         'paidAmount': double.tryParse(paidAmount.text) ?? 0.0,
         'dueAmount': dueAmount.value,
         'paymentStatus': paymentStatus,
+        'batchId': selectedBatchController.selectedBatchId.value,
         if (notes.text.isNotEmpty) 'notes': notes.text,
       };
 
